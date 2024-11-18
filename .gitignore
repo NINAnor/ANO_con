@@ -28,5 +28,5 @@ vignettes/*.pdf
 .Renviron
 NINA-ebook-template.Rproj
 # Quarto
-/_book/
 /.quarto/
+ANO_con.Rproj
