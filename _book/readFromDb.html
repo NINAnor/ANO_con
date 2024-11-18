@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.4.555">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-
-<meta name="description" content="Add some description here if you like.">
-
-<title>This is the title - Appendix A — Additional Notes</title>
+<meta name="description" content="This website document how to read and write data from the postgreSQL database containing the spatial data for ANO-moduler.">
+<title>Working with the ANO-moduler database - 3&nbsp; Read data from the database</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,8 +18,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
-
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
@@ -31,7 +61,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./hello-world.html" rel="prev">
+<link href="./setup.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -40,8 +70,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
-<script id="quarto-search-options" type="application/json">{
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
   "collapse-after": 3,
@@ -68,60 +97,51 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-
-
 </head>
-
 <body class="nav-sidebar floating">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top">
-  <nav class="quarto-secondary-nav">
-    <div class="container-fluid d-flex">
+  <header id="quarto-header" class="headroom fixed-top"><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./appendix-notes.html">Appendices</a></li><li class="breadcrumb-item"><a href="./appendix-notes.html"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Additional Notes</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./readFromDb.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Read data from the database</span></a></li></ol></nav>
         <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
     </div>
-  </nav>
-</header>
-<!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="./">This is the title</a> 
+      <a href="./">Working with the ANO-moduler database</a> 
         <div class="sidebar-tools-main">
     <a href="https://github.com/NINAnor/NINA-ebook-template" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
     <div class="dropdown">
       <a href="" title="Share" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Share"><i class="bi bi-share"></i></a>
       <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
-          <li>
-            <a class="dropdown-item sidebar-tools-main-item" href="https://twitter.com/intent/tweet?url=|url|">
+<li>
+            <a class="dropdown-item sidebar-tools-main-item" href="https://twitter.com/intent/tweet?url=%7Curl%7C">
               <i class="bi bi-bi-twitter pe-1"></i>
             Twitter
             </a>
           </li>
           <li>
-            <a class="dropdown-item sidebar-tools-main-item" href="https://www.facebook.com/sharer/sharer.php?u=|url|">
+            <a class="dropdown-item sidebar-tools-main-item" href="https://www.facebook.com/sharer/sharer.php?u=%7Curl%7C">
               <i class="bi bi-bi-facebook pe-1"></i>
             Facebook
             </a>
           </li>
           <li>
-            <a class="dropdown-item sidebar-tools-main-item" href="https://www.linkedin.com/sharing/share-offsite/?url=|url|">
+            <a class="dropdown-item sidebar-tools-main-item" href="https://www.linkedin.com/sharing/share-offsite/?url=%7Curl%7C">
               <i class="bi bi-bi-linkedin pe-1"></i>
             LinkedIn
             </a>
           </li>
       </ul>
-    </div>
+</div>
 </div>
     </div>
       </div>
@@ -132,60 +152,42 @@ ul.task-list li input[type="checkbox"] {
         </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
-        <li class="sidebar-item">
+<li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Welcome</span></a>
+ <span class="menu-text">Introduction</span></a>
   </div>
 </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a href="./my-first-book.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Part 1: Write the book</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./hello-world.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">The Hello World Example</span></span></a>
+  <a href="./connecting.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Connecting to the database</span></span></a>
   </div>
 </li>
-      </ul>
-  </li>
-        <li class="sidebar-item sidebar-item-section">
-      <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
- <span class="menu-text">Appendices</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
-            <i class="bi bi-chevron-right ms-2"></i>
-          </a> 
-      </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
-          <li class="sidebar-item">
+        <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./appendix-notes.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Additional Notes</span></span></a>
+  <a href="./setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Setup</span></span></a>
   </div>
 </li>
-      </ul>
-  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./readFromDb.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Read data from the database</span></span></a>
+  </div>
+</li>
     </ul>
-    </div>
-</nav>
-<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+</div>
+</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
-
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./appendix-notes.html">Appendices</a></li><li class="breadcrumb-item"><a href="./appendix-notes.html"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Additional Notes</span></a></li></ol></nav>
-<div class="quarto-title">
-<h1 class="title"><span id="sec-appendix" class="quarto-section-identifier">Appendix A — Additional Notes</span></h1>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<h1 class="title">
+<span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Read data from the database</span>
+</h1>
 </div>
 
 
@@ -199,15 +201,114 @@ ul.task-list li input[type="checkbox"] {
   
 
 
-</header>
+</header><p>Now that we have added data to the database, we can also read it back.</p>
+<div class="cell">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coast_sample</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/tbl.html">tbl</a></span><span class="op">(</span><span class="va">con</span>, <span class="fu">dbplyr</span><span class="fu">::</span><span class="fu"><a href="https://dbplyr.tidyverse.org/reference/in_schema.html">in_schema</a></span><span class="op">(</span><span class="st">"sampling_frames"</span>, <span class="st">"samplingframe_havstrand_2024"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">coast_sample</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Source:   SQL [?? x 2]
+# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]
+   havstrand_id                         ssbid         
+   &lt;chr&gt;                                &lt;chr&gt;         
+ 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500
+ 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000
+ 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500
+ 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000
+ 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500
+ 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500
+ 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000
+ 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000
+ 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000
+10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500
+# ℹ more rows</code></pre>
+</div>
+</div>
+<p>This data only exists remotely still. We need to use collect to bring it down to our local machine. At the same time we can use dplyr pipelines to filter the data.</p>
+<div class="cell">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coast_sample</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu">row_number</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_min</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">8</span>, order_by <span class="op">=</span> <span class="va">id</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html">collect</a></span><span class="op">(</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 3
+  havstrand_id                         ssbid               id
+  &lt;chr&gt;                                &lt;chr&gt;          &lt;int64&gt;
+1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500       1
+2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000       2
+3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500       3
+4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000       4
+5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500       5
+6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500       6
+7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000       7
+8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000       8</code></pre>
+</div>
+</div>
+<p>We can also get the geometries, which are stored in the foreign table. To do this we can use the dm package.</p>
+<p>We first create a dm object from the connection object. Then we can view data easily.</p>
+<div class="cell">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">&lt;-</span> <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_from_con.html">dm_from_con</a></span><span class="op">(</span><span class="va">con</span>,</span>
+<span>  table_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ssb_500"</span>,</span>
+<span>                  <span class="st">"samplingframe_havstrand_2024"</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Keys queried successfully.
+ℹ Use `learn_keys = TRUE` to mute this message.</code></pre>
+</div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span><span class="op">$</span><span class="va">samplingframe_havstrand_2024</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Source:   table&lt;"ano_moduler"."sampling_frames"."samplingframe_havstrand_2024"&gt; [?? x 2]
+# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]
+   havstrand_id                         ssbid         
+   &lt;chr&gt;                                &lt;chr&gt;         
+ 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500
+ 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000
+ 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500
+ 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000
+ 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500
+ 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500
+ 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000
+ 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000
+ 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000
+10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500
+# ℹ more rows</code></pre>
+</div>
+</div>
+<p>DM learns the relationshios between tables by reading the constraints:</p>
+<div class="cell">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_set_colors.html">dm_set_colors</a></span><span class="op">(</span></span>
+<span>    darkgreen <span class="op">=</span> <span class="va">samplingframe_havstrand_2024</span>, </span>
+<span>    darkblue <span class="op">=</span> <span class="va">ssb_500</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_draw.html">dm_draw</a></span><span class="op">(</span><span class="op">)</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><img src="img/screen_db.png" class="img-fluid"></p>
+<p>Then we can read the data back, including the geometries from the parent table.</p>
+<div class="cell">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_flatten_to_tbl.html">dm_flatten_to_tbl</a></span><span class="op">(</span><span class="va">samplingframe_havstrand_2024</span>,</span>
+<span>                    .recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Source:   SQL [?? x 3]
+# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]
+   havstrand_id                         ssbid          geom                     
+   &lt;chr&gt;                                &lt;chr&gt;          &lt;pq_gmtry&gt;               
+ 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500 0103000020E9640000010000…
+ 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000 0103000020E9640000010000…
+ 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500 0103000020E9640000010000…
+ 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000 0103000020E9640000010000…
+ 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500 0103000020E9640000010000…
+ 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500 0103000020E9640000010000…
+ 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000 0103000020E9640000010000…
+ 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000 0103000020E9640000010000…
+ 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000 0103000020E9640000010000…
+10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500 0103000020E9640000010000…
+# ℹ more rows</code></pre>
+</div>
+</div>
+<p>The geometry column is a bit weird though. Not sure what is happening there, but see <a href="https://forum.posit.co/t/geom-column-support-for-dbplyr-for-spatial-databases/3172/9">this</a>.</p>
 
 
-<p>Sample appendix</p>
 
-
-
-</main> <!-- /main -->
-<script id="quarto-html-after-body" type="application/javascript">
+</main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -615,11 +716,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
 });
-</script>
-<nav class="page-navigation">
-  <div class="nav-page nav-page-previous">
-      <a href="./hello-world.html" class="pagination-link" aria-label="The Hello World Example">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">The Hello World Example</span></span>
+</script><nav class="page-navigation"><div class="nav-page nav-page-previous">
+      <a href="./setup.html" class="pagination-link" aria-label="Setup">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Setup</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
@@ -629,5 +728,4 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/appendix-notes.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/readFromDb.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>

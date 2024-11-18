@@ -1,0 +1,27 @@
+# Connecting to the database
+
+Fisrt you need to save your personal windows password to your local machine..
+Don't write it in your code.
+You can store it in your personal root folder like this (just change the 'secretPassword' to you own):
+
+```{r setup2}
+#| include: false
+#| message: false
+#| error: false
+library(tidyverse)
+library(dbplyr)
+library(DBI)
+library(RPostgres)
+
+```
+
+```{r}
+system("echo '*:*:*:*:secretPassword' > ~/.pgpass")
+system("chmod 0600 ~/.pgpass")
+```
+
+Then you can connect:
+```{r}
+#| eval: true
+con <- DBI::dbConnect(drv = RPostgres::Postgres(), host = "t2lippgsql03", dbname = "ano_moduler")
+```

@@ -2,26 +2,31 @@
 bibliography: references.bib
 ---
 
-## Welcome {.unnumbered}
-
-Welcome splash page! Provide an overview of the book.
-
-Sample evaluation of R and Python in a side-by-side manner:
-
-::: {layout-ncol="2"}
-#### R
-
-```{r}
-my_list = list(1, 2, 3)
-typeof(my_list)
+```{r setup}
+#| include: false
+#| message: false
+#| error: false
+library(tidyverse)
+library(dbplyr)
+library(DBI)
+library(RPostgres)
 ```
 
-#### Python
+## Introduction {.unnumbered}
 
-```{python}
-my_list = [1, 2, 3]
-type(my_list)
-```
-:::
+This web site show you how to connect to the internal NINA postgreSQL database containing the spatial data for the ANO-modules. 
+The database is found on the `t2lippgsql03` server , and is called  `ano_moduler`.
+This with admin rights are  
 
-See [Chapter 1](#sec-hello-world) for how to plot and cross reference figures. We cannot make cross referanceble objects on this page, because it is an *unnumbered* page, and you can't cross reference to things in unnumbered pages.
+- Anders Kolstad (anders.kolstad@nina.no)
+- Jens Åström (jens.astrom@nina.no)
+
+
+The database contains the raw data needed to make balansed spatial samples of monitoring localities for ANO-modules.
+
+
+
+
+
+
+

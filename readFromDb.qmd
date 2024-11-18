@@ -1,0 +1,77 @@
+# Read data from the database
+
+```{r setup2}
+#| include: false
+#| message: false
+#| error: false
+library(tidyverse)
+library(dbplyr)
+library(DBI)
+library(RPostgres)
+library(dm)
+```
+Now that we have added data to the database, we can also read it back.
+
+```{r}
+#| eval: true
+#| include: false
+con <- DBI::dbConnect(drv = RPostgres::Postgres(), host = "t2lippgsql03", dbname = "ano_moduler")
+```
+
+```{r}
+#| eval: true
+coast_sample <- dplyr::tbl(con, dbplyr::in_schema("sampling_frames", "samplingframe_havstrand_2024"))
+coast_sample
+```
+
+This data only exists remotely still.
+We need to use collect to bring it down to our local machine. 
+At the same time we can use dplyr pipelines to filter the data.
+
+```{r}
+#| eval: true
+coast_sample |>
+  dplyr::mutate(id = row_number()) |>
+  dplyr::slice_min(n = 8, order_by = id) |>
+  dplyr::collect()
+```
+
+We can also get the geometries, which are stored in the foreign table.
+To do this we can use the dm package.
+
+We first create a dm object from the connection object.
+Then we can view data easily.
+```{r}
+#| eval: true
+dm <- dm::dm_from_con(con,
+  table_names = c("ssb_500",
+                  "samplingframe_havstrand_2024"))
+dm$samplingframe_havstrand_2024
+```
+
+DM learns the relationshios between tables by reading the constraints:
+```{r}
+dm |>
+  dm::dm_set_colors(
+    darkgreen = samplingframe_havstrand_2024, 
+    darkblue = ssb_500) |>
+  dm::dm_draw() 
+```
+
+![](img/screen_db.png)
+```{r}
+
+```
+
+
+Then we can read the data back, including the geometries from the parent table.
+```{r}
+#| eval: true
+dm |>
+  dm::dm_flatten_to_tbl(samplingframe_havstrand_2024,
+                    .recursive = TRUE)
+```
+
+
+The geometry column is a bit weird though. Not sure what is happening there,
+but see [this](https://forum.posit.co/t/geom-column-support-for-dbplyr-for-spatial-databases/3172/9). 

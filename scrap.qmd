@@ -1,0 +1,59 @@
+
+
+
+Now we read a spatial dataset of the Norwegian coastline
+```{r}
+path <- "/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/GeoPackage4AndersKystlinjer.gpkg"
+sf::st_layers(path)
+```
+
+```{r}
+coast <- read_sf(path)
+st_geometry_type(coast, by_geometry = F)
+```
+
+
+Now I calculate the lenght of these line segments.
+```{r}
+coast <- coast |>
+  mutate(length = st_length(Shape))
+
+plot(coast$length)
+```
+
+There is one line much longer than the rest. This is the coastline to mainland Norway. 
+The other lines represent islands.
+
+```{r}
+main_coastline <- coast |>
+  slice_max(length)
+```
+
+
+The CRS is different between SSB500 and the derived data:
+```{r}
+st_crs(SSB500) == st_crs(coast)
+```
+Everything should be in 32633.
+
+```{r}
+main_coastline <- main_coastline |>
+  st_transform(32633)
+
+coastSSB_sub <- coastSSB |>
+  slice_head(n = 8) |>
+  st_transform(32633)
+
+main_coastline_sub <- main_coastline[coastSSB_sub,]
+```
+
+
+Let's plot some data.
+```{r}
+coastSSB_sub |>
+  ggplot()+
+  geom_sf()+
+  geom_sf(data = main_coastline_sub,
+          fill = NA)
+
+```
