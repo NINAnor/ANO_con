@@ -5,7 +5,7 @@
 <meta name="generator" content="quarto-1.4.555">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="description" content="This website document how to read and write data from the postgreSQL database containing the spatial data for ANO-moduler.">
-<title>Working with the ANO-moduler database - 4&nbsp; Read data from the database</title>
+<title>Working with the ANO-moduler database - 4&nbsp; Sampling frames</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -61,7 +61,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./samplingFrames.html" rel="prev">
+<link href="./readFromDb.html" rel="next">
+<link href="./bioclimatic_regions.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -105,7 +106,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./readFromDb.html">Read data from database</a></li><li class="breadcrumb-item"><a href="./readFromDb.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Read data from the database</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./samplingFrames.html">Write tabular data to the database</a></li><li class="breadcrumb-item"><a href="./samplingFrames.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></a></li></ol></nav>
         <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -179,12 +180,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">SSB500</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bioclimatic_regions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bioclimatic regions</span></span></a>
+  </div>
+</li>
       </ul>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
- <span class="menu-text">Write tabular dat Sampling frames</span></a>
+ <span class="menu-text">Write tabular data to the database</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -192,8 +199,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./samplingFrames.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling frame for the Havstrand module</span></span></a>
+  <a href="./samplingFrames.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></span></a>
   </div>
 </li>
       </ul>
@@ -209,8 +216,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./readFromDb.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Read data from the database</span></span></a>
+  <a href="./readFromDb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Read data from the database</span></span></a>
   </div>
 </li>
       </ul>
@@ -220,12 +227,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+<li><a href="#setup-schema" id="toc-setup-schema" class="nav-link active" data-scroll-target="#setup-schema"><span class="header-section-number">4.1</span> Setup schema</a></li>
+  <li>
+<a href="#ano-havstrand" id="toc-ano-havstrand" class="nav-link" data-scroll-target="#ano-havstrand"><span class="header-section-number">4.2</span> ANO Havstrand</a>
+  <ul class="collapse">
+<li><a href="#define-table-properties" id="toc-define-table-properties" class="nav-link" data-scroll-target="#define-table-properties"><span class="header-section-number">4.2.1</span> Define table properties</a></li>
+  <li><a href="#write-to-db" id="toc-write-to-db" class="nav-link" data-scroll-target="#write-to-db"><span class="header-section-number">4.2.2</span> Write to db</a></li>
+  </ul>
+</li>
+  </ul><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/samplingFrames.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./readFromDb.html">Read data from database</a></li><li class="breadcrumb-item"><a href="./readFromDb.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Read data from the database</span></a></li></ol></nav><div class="quarto-title">
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./samplingFrames.html">Write tabular data to the database</a></li><li class="breadcrumb-item"><a href="./samplingFrames.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></a></li></ol></nav><div class="quarto-title">
 <h1 class="title">
-<span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Read data from the database</span>
+<span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span>
 </h1>
 </div>
 
@@ -240,114 +258,112 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   
 
 
-</header><p>Now that we have added data to the database, we can also read it back.</p>
+</header><p>We will have different sampling frames, also called the <em>universe</em>, for the different ANO-modules.</p>
+<section id="setup-schema" class="level2" data-number="4.1"><h2 data-number="4.1" class="anchored" data-anchor-id="setup-schema">
+<span class="header-section-number">4.1</span> Setup schema</h2>
 <div class="cell">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coast_sample</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/tbl.html">tbl</a></span><span class="op">(</span><span class="va">con</span>, <span class="fu">dbplyr</span><span class="fu">::</span><span class="fu"><a href="https://dbplyr.tidyverse.org/reference/in_schema.html">in_schema</a></span><span class="op">(</span><span class="st">"sampling_frames"</span>, <span class="st">"samplingframe_havstrand_2024"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">coast_sample</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">schema_ur</span> <span class="op">&lt;-</span> <span class="st">"CREATE SCHEMA sampling_frames"</span></span>
+<span><span class="fu">dbSendQuery</span><span class="op">(</span><span class="va">con</span>, <span class="va">schema_ur</span><span class="op">)</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Write queries to grant read only access to all.</p>
+<div class="cell">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">priv</span> <span class="op">&lt;-</span> <span class="st">"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro"</span></span>
+<span><span class="va">priv2</span> <span class="op">&lt;-</span> <span class="st">"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw"</span></span>
+<span><span class="va">priv3</span> <span class="op">&lt;-</span> <span class="st">"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin"</span></span>
+<span><span class="va">priv4</span> <span class="op">&lt;-</span> <span class="st">"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_admin"</span></span>
+<span><span class="va">priv5</span> <span class="op">&lt;-</span> <span class="st">"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_rw"</span></span>
+<span><span class="va">priv6</span> <span class="op">&lt;-</span> <span class="st">"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_ro"</span></span>
+<span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv</span><span class="op">)</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv2</span><span class="op">)</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv3</span><span class="op">)</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv4</span><span class="op">)</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv5</span><span class="op">)</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv6</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section><section id="ano-havstrand" class="level2" data-number="4.2"><h2 data-number="4.2" class="anchored" data-anchor-id="ano-havstrand">
+<span class="header-section-number">4.2</span> ANO Havstrand</h2>
+<p>For ANO Havstrand (ANO Coast), SSB500 has been masked to only include grid cells that overlap with the Norwegian coastline. The script for doing that is written in python ad can be found here: <em>/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/</em></p>
+<p>Read data into R:</p>
+<div class="cell">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coast_path</span> <span class="op">&lt;-</span> <span class="st">"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/CoastalSampling3.gdb"</span></span>
+<span></span>
+<span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_layers.html">st_layers</a></span><span class="op">(</span><span class="va">coast_path</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># Source:   SQL [?? x 2]
-# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]
-   havstrand_id                         ssbid         
-   &lt;chr&gt;                                &lt;chr&gt;         
- 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500
- 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000
- 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500
- 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000
- 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500
- 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500
- 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000
- 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000
- 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000
-10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500
-# ℹ more rows</code></pre>
+<pre><code>Driver: OpenFileGDB 
+Available layers:
+                layer_name     geometry_type features fields
+1            fcNorgeKyst_l Multi Line String   101331      2
+2 fcKystline_500mSegmenter Multi Line String   240861      1
+3              Samples62_5       Multi Point   769342      2
+4              Samples83_3       Multi Point   555958      2
+5               Samples125       Multi Point   350676      2
+6            SSB500_Coast4     Multi Polygon   121920      6
+7        Hexagon62_5_Coast     Multi Polygon  2729978      3
+8        Hexagon83_3_Coast     Multi Polygon  1622139      3
+9         Hexagon125_Coast     Multi Polygon   796190      3
+               crs_name
+1 ETRS89 / UTM zone 33N
+2 ETRS89 / UTM zone 33N
+3 ETRS89 / UTM zone 33N
+4 ETRS89 / UTM zone 33N
+5 ETRS89 / UTM zone 33N
+6 ETRS89 / UTM zone 33N
+7 WGS 84 / UTM zone 33N
+8 WGS 84 / UTM zone 33N
+9 WGS 84 / UTM zone 33N</code></pre>
 </div>
 </div>
-<p>This data only exists remotely still. We need to use collect to bring it down to our local machine. At the same time we can use dplyr pipelines to filter the data.</p>
+<p>SSB500_Coast4 contains the SSB500 grid cells that overlap with the coastline.</p>
 <div class="cell">
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coast_sample</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu">row_number</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_min</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">8</span>, order_by <span class="op">=</span> <span class="va">id</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html">collect</a></span><span class="op">(</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 8 × 3
-  havstrand_id                         ssbid               id
-  &lt;chr&gt;                                &lt;chr&gt;          &lt;int64&gt;
-1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500       1
-2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000       2
-3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500       3
-4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000       4
-5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500       5
-6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500       6
-7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000       7
-8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000       8</code></pre>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coastSSB</span> <span class="op">&lt;-</span> <span class="fu">read_sf</span><span class="op">(</span><span class="va">coast_path</span>, layer <span class="op">=</span> <span class="st">"SSB500_Coast4"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<p>We can also get the geometries, which are stored in the foreign table. To do this we can use the dm package.</p>
-<p>We first create a dm object from the connection object. Then we can view data easily.</p>
+<p>The SSBid will be the foregn key, linking to ssb_500. We also need a primary key, and therefore I add a unique identifier.</p>
 <div class="cell">
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">&lt;-</span> <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_from_con.html">dm_from_con</a></span><span class="op">(</span><span class="va">con</span>,</span>
-<span>  table_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ssb_500"</span>,</span>
-<span>                  <span class="st">"samplingframe_havstrand_2024"</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Keys queried successfully.
-ℹ Use `learn_keys = TRUE` to mute this message.</code></pre>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu">UUIDgenerate</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">coastSSB</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">anyDuplicated</a></span><span class="op">(</span><span class="va">ids</span><span class="op">)</span></span>
+<span><span class="va">coastSSB</span> <span class="op">&lt;-</span> <span class="va">coastSSB</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span>ssbid <span class="op">=</span> <span class="va">SSBid</span><span class="op">)</span><span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>havstrand_id <span class="op">=</span> <span class="va">ids</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span><span class="op">$</span><span class="va">samplingframe_havstrand_2024</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># Source:   table&lt;"ano_moduler"."sampling_frames"."samplingframe_havstrand_2024"&gt; [?? x 2]
-# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]
-   havstrand_id                         ssbid         
-   &lt;chr&gt;                                &lt;chr&gt;         
- 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500
- 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000
- 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500
- 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000
- 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500
- 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500
- 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000
- 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000
- 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000
-10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500
-# ℹ more rows</code></pre>
-</div>
-</div>
-<p>DM learns the relationshios between tables by reading the constraints:</p>
+<p>We don’t need the geometry</p>
 <div class="cell">
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_set_colors.html">dm_set_colors</a></span><span class="op">(</span></span>
-<span>    darkgreen <span class="op">=</span> <span class="va">samplingframe_havstrand_2024</span>, </span>
-<span>    darkblue <span class="op">=</span> <span class="va">ssb_500</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_draw.html">dm_draw</a></span><span class="op">(</span><span class="op">)</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coastSSB</span> <span class="op">&lt;-</span> <span class="fu">as_tibble</span><span class="op">(</span><span class="va">coastSSB</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="va">ssbid</span>, <span class="va">havstrand_id</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p><img src="img/screen_db.png" class="img-fluid"></p>
-<p>Then we can read the data back, including the geometries from the parent table.</p>
+<section id="define-table-properties" class="level3" data-number="4.2.1"><h3 data-number="4.2.1" class="anchored" data-anchor-id="define-table-properties">
+<span class="header-section-number">4.2.1</span> Define table properties</h3>
+<p>We will name the table <em>samplingframe_havstrand_2024</em>.</p>
 <div class="cell">
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_flatten_to_tbl.html">dm_flatten_to_tbl</a></span><span class="op">(</span><span class="va">samplingframe_havstrand_2024</span>,</span>
-<span>                    .recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># Source:   SQL [?? x 3]
-# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]
-   havstrand_id                         ssbid          geom                     
-   &lt;chr&gt;                                &lt;chr&gt;          &lt;pq_gmtry&gt;               
- 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500 0103000020E9640000010000…
- 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000 0103000020E9640000010000…
- 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500 0103000020E9640000010000…
- 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000 0103000020E9640000010000…
- 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500 0103000020E9640000010000…
- 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500 0103000020E9640000010000…
- 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000 0103000020E9640000010000…
- 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000 0103000020E9640000010000…
- 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000 0103000020E9640000010000…
-10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500 0103000020E9640000010000…
-# ℹ more rows</code></pre>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">q1</span> <span class="op">&lt;-</span> <span class="st">"create table sampling_frames.samplingframe_havstrand_2024 (</span></span>
+<span><span class="st">havstrand_id character varying(50) primary key,</span></span>
+<span><span class="st">ssbid character varying(50),</span></span>
+<span><span class="st">CONSTRAINT fk_ssb_500</span></span>
+<span><span class="st">      FOREIGN KEY (ssbid)</span></span>
+<span><span class="st">        REFERENCES ssb_grids.ssb_500 (ssbid)</span></span>
+<span><span class="st">);"</span></span>
+<span></span>
+<span><span class="co"># indices makes the database work faster. It should be added to all tables that are looked up frequently</span></span>
+<span><span class="va">q2</span> <span class="op">&lt;-</span> <span class="st">"create index on sampling_frames.samplingframe_havstrand_2024 using btree(ssbid);"</span></span>
+<span><span class="va">q3</span> <span class="op">&lt;-</span> <span class="st">"create index on sampling_frames.samplingframe_havstrand_2024 using btree(havstrand_id);"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<div class="cell">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># sending the queries:</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q1</span><span class="op">)</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q2</span><span class="op">)</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q3</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>The geometry column is a bit weird though. Not sure what is happening there, but see <a href="https://forum.posit.co/t/geom-column-support-for-dbplyr-for-spatial-databases/3172/9">this</a>.</p>
+</section><section id="write-to-db" class="level3" data-number="4.2.2"><h3 data-number="4.2.2" class="anchored" data-anchor-id="write-to-db">
+<span class="header-section-number">4.2.2</span> Write to db</h3>
+<p>Then we write data to the samplingframe_havstrand_2024 table.</p>
+<div class="cell">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_sf</span><span class="op">(</span><span class="va">coastSSB</span>, dsn <span class="op">=</span> <span class="va">con</span>,</span>
+<span>         layer <span class="op">=</span> <span class="fu">Id</span><span class="op">(</span>schema <span class="op">=</span> <span class="st">"sampling_frames"</span>, table <span class="op">=</span> <span class="st">"samplingframe_havstrand_2024"</span><span class="op">)</span>, </span>
+<span>         append <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 
 
-
-</main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -756,15 +772,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
-      <a href="./samplingFrames.html" class="pagination-link" aria-label="Sampling frame for the Havstrand module">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling frame for the Havstrand module</span></span>
+      <a href="./bioclimatic_regions.html" class="pagination-link" aria-label="Bioclimatic regions">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bioclimatic regions</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
+      <a href="./readFromDb.html" class="pagination-link" aria-label="Read data from the database">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Read data from the database</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
   </div>
 </nav>
 </div> <!-- /content -->
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/readFromDb.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/samplingFrames.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>
