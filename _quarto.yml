@@ -14,8 +14,16 @@ book:
   chapters:
     - index.qmd
     - connecting.qmd
-    - setup.qmd
-    - readFromDb.qmd
+    - part: "Write geographic data to the database"
+      chapters: 
+      - SSB500.qmd
+      - bioclimatic_regions.qmd
+    - part: "Write tabular data to the database"
+      chapters: 
+        - samplingFrames.qmd
+    - part: "Read data from database"  
+      chapters: 
+        - readFromDb.qmd
     
 format:
   html: 

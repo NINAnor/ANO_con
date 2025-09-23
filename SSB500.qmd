@@ -1,0 +1,111 @@
+# SSB500 {#sec-setup}
+
+In this chapter we prepare and write the SSB500 dataset to the database
+
+## Setup schema
+Setting up a new schema called ssb_grids.
+Here we can store SSB500, but also SSB10km which may become relevant.
+```{r}
+new_schemas <- "CREATE SCHEMA ssb_grids"
+dbSendQuery(con, new_schemas) 
+```
+
+Write queries to grant read only access to all.
+```{r settingupPriveleges}
+priv <- "ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro"
+
+priv2 <- "ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw"
+
+priv3 <- "ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin"
+
+priv4 <- "GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_admin"
+priv5 <- "GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_rw"
+priv6 <- "GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_ro"
+
+dbSendStatement(con, priv)
+dbSendStatement(con, priv2)
+dbSendStatement(con, priv3)
+dbSendStatement(con, priv4)
+dbSendStatement(con, priv5)
+dbSendStatement(con, priv6)
+```
+
+
+## Read data into R
+We use RStudio as the interface when adding new data to the database.
+We start by bringing the data into our environment.
+
+First we can get the entire SSB500 dataset.
+
+```{r}
+SSBpath <- "/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Data/SSB0500M_L/ruter500m_Norge.shp"
+SSB500 <- read_sf(SSBpath) |>
+  st_transform(25833)
+```
+
+Strip down the number of columns
+```{r}
+SSB500 <- SSB500 |>
+  select(ssbid = SSBid) # postgre doesnt like capital letters
+
+# the geometry column needs to be named 'geom'
+st_geometry(SSB500) <- "geom"
+```
+
+This data consists of perfect 500x500 grid cells arranged on rounded coordinates in the UTM sone 33 CRS.
+```{r}
+#| include: false
+SSB500 |>
+  slice_head(n=10)|>
+  ggplot()+
+  geom_sf()
+```
+
+
+## Define table properties
+First we define the table properties
+```{r}
+q1 <- "create table ssb_grids.ssb_500 (
+ssbid character varying(50) primary key,
+geom geometry(polygon,25833)
+);"
+
+# indices makes the database work faster. It should be added to all tables that are looked up frequently
+q2 <- "create index on ssb_grids.ssb_500 using btree(ssbid);"
+q3 <- "create index on ssb_grids.ssb_500 using gist(geom);"
+```
+
+```{r}
+# sending the queries:
+dbSendStatement(con, q1)
+dbSendStatement(con, q2)
+dbSendStatement(con, q3)
+```
+
+
+We defined geom to be polygon. Now let's just check that that is trua, and there are no multi-polygons for example.
+```{r}
+st_geometry_type(SSB500, by_geometry = F)
+```
+Yes, they are all polygons.
+
+
+## Write to db
+
+Then we write data to the ssb_500 table.
+```{r}
+write_sf(SSB500, dsn = con,
+         layer = Id(schema = "ssb_grids", table = "ssb_500"), 
+         append = T)
+```
+
+
+
+
+
+
+
+
+
+
+
