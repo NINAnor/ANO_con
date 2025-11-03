@@ -61,41 +61,125 @@ toConvert <- c(
 dat <- dat |>
   mutate(across(toConvert, ~ gsub("^'", "", .))) |>
   mutate(across(toConvert, ~ gsub(",", ".", .))) |>
-  mutate(across(toConvert, as.numeric))
+  mutate(across(toConvert, as.numeric)) |>
+  mutate(across(toConvert, \(x) round(x, digits = 5))) |>
+  rename(ssbid = SSBid)
 
 ```
 
-We start with `r nrow(dat)` sampling units, but 
+We start with 1 880 382 sampling units, but 
 we want to exclude sampling units with 100% water (ocean or freshwater).
-There are 231083 units of marine waters and 
-5207 with freshwater. 
+There are 516201 units of marine waters and 
+13263 with freshwater. 
 We could perhaps also exclude units with 100% build up area, but I'm at this moment not sure
 we can be fully sure there is no wetland in those units.
 Units with snow and ice are kept, becaus ethey can become wetalnds in a few decades.
 
 ```{r}
-# nrow(dat[dat$rHav == 100,])
-# nrow(dat[dat$rFerskvann == 100,])
 
- dat2 <- dat |>
+dat_full <- dat
+
+nrow(dat_full[dat_full$rHav == 100,])
+nrow(dat_full[dat_full$rFerskvann == 100,])
+  
+dat <- dat |>
   dplyr::filter(rHav < 100 & rFerskvann <100)
 
-# nrow(dat)-nrow(dat2) # 236290. Correct
+nrow(dat_full)-nrow(dat) # 529464 Correct
+nrow(dat) #1350918
+nrow(dat)/4 # 337 729.5
 ```
 
-This remove `r nrow`
+```{r}
+anyDuplicated(dat$ssbid) # no duplicates
+```
+
+Now we are down to 1 644 092 units. If we divide by 4 to get km2, 
+we get a little higher than the true value for the Norwegian mainland,
+which is as expected since we include some coastal waters. 
 
 We also need a primary key, and therefore I add a unique identifier.
 
 ```{r}
-ids <- UUIDgenerate(n = nrow(coastSSB))
+ids <- uuid::UUIDgenerate(n = nrow(dat))
 anyDuplicated(ids)
-coastSSB <- coastSSB |>
-  select(ssbid = SSBid)|>
-  mutate(havstrand_id = ids)
-
+dat <- dat |>
+  mutate(
+    vaatmark_id = ids
+  )
 ```
 
+```{r}
+dat <- dat |>
+  select(
+    ssbid,
+    vaatmark_id,
+    ost,
+    nord,
+    centroid_x = CENTROID_X,
+    centroid_y = CENTROID_Y,
+    komm2016 = Komm2016,
+    fylk2016 = Fylk2016,
+    r_ferskvann = rFerskvann,
+    r_hav = rHav,
+    r_sno_isbre = rSnoIsbre,
+    r_bebygd_samf = rBebygdSamf,
+    mean_slope = meanSlope,
+    ssbid_1000 = SSBid_1000,
+    sone_kode = Sone_kode,
+    seksjon_kode = Seksjon_kode,
+    abi = ABI)
+```
+
+
+### Define table properties
+We will name the table *samplingframe_vaatmark_2025*.
+
+```{r}
+q1 <- "create table sampling_frames.samplingframe_vaatmark_2025 (
+vaatmark_id character varying(50) primary key,
+ssbid character varying(50),
+ost integer,
+nord integer,
+centroid_x numeric(24,0),
+centroid_y numeric(24,0),
+komm2016 character varying(5),
+fylk2016 character varying(5),
+r_ferskvann numeric(10,5),
+r_hav numeric(10,5),
+r_sno_isbre numeric(10,5),
+r_bebygd_samf numeric(10,5),
+mean_slope numeric(10,5),
+ssbid_1000 numeric(15,0),
+sone_kode character varying(7),
+seksjon_kode character varying(7),
+abi integer,
+CONSTRAINT fk_ssb_500
+      FOREIGN KEY (ssbid)
+        REFERENCES ssb_grids.ssb_500 (ssbid)
+);"
+
+# indices makes the database work faster. It should be added to all tables that are looked up frequently
+q2 <- "create index on sampling_frames.samplingframe_vaatmark_2025 using btree(ssbid);"
+q3 <- "create index on sampling_frames.samplingframe_vaatmark_2025 using btree(vaatmark_id);"
+```
+
+```{r}
+# sending the queries:
+dbSendStatement(con, q1)
+dbSendStatement(con, q2)
+dbSendStatement(con, q3)
+```
+
+
+### Write to db
+
+Then we write data to the samplingframe_havstrand_2024 table.
+```{r}
+write_sf(dat, dsn = con,
+         layer = Id(schema = "sampling_frames", table = "samplingframe_vaatmark_2025"), 
+         append = T)
+```
 
 
 ## ANO Havstrand
