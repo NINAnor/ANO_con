@@ -83,7 +83,7 @@ dbSendStatement(con, q3)
 ```
 
 
-We defined geom to be polygon. Now let's just check that that is trua, and there are no multi-polygons for example.
+We defined geom to be polygon. Now let's just check that that is true, and there are no multi-polygons for example.
 ```{r}
 st_geometry_type(SSB500, by_geometry = F)
 ```
