@@ -5,7 +5,7 @@
 <meta name="generator" content="quarto-1.4.555">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="description" content="This website document how to read and write data from the postgreSQL database containing the spatial data for ANO-moduler.">
-<title>Working with the ANO-moduler database - 2&nbsp; SSB500</title>
+<title>Working with the ANO-moduler database - 3&nbsp; Bioclimatic regions</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -52,7 +52,27 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
@@ -61,8 +81,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./bioclimatic_regions.html" rel="next">
-<link href="./connecting.html" rel="prev">
+<link href="./020_samplingFrames.html" rel="next">
+<link href="./010_SSB500.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -106,7 +126,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./SSB500.html">Write geographic data to the database</a></li><li class="breadcrumb-item"><a href="./SSB500.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">SSB500</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./010_SSB500.html">Write geographic data to the database</a></li><li class="breadcrumb-item"><a href="./011_bioclimatic_regions.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bioclimatic regions</span></a></li></ol></nav>
         <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -161,7 +181,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./connecting.html" class="sidebar-item-text sidebar-link">
+  <a href="./001_connecting.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Connecting to the database</span></span></a>
   </div>
 </li>
@@ -176,13 +196,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./SSB500.html" class="sidebar-item-text sidebar-link active">
+  <a href="./010_SSB500.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">SSB500</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./bioclimatic_regions.html" class="sidebar-item-text sidebar-link">
+  <a href="./011_bioclimatic_regions.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bioclimatic regions</span></span></a>
   </div>
 </li>
@@ -199,7 +219,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./samplingFrames.html" class="sidebar-item-text sidebar-link">
+  <a href="./020_samplingFrames.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></span></a>
   </div>
 </li>
@@ -216,7 +236,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./readFromDb.html" class="sidebar-item-text sidebar-link">
+  <a href="./021_readFromDb.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Read data from the database</span></span></a>
   </div>
 </li>
@@ -230,15 +250,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
    
   <ul>
-<li><a href="#setup-schema" id="toc-setup-schema" class="nav-link active" data-scroll-target="#setup-schema"><span class="header-section-number">2.1</span> Setup schema</a></li>
-  <li><a href="#read-data-into-r" id="toc-read-data-into-r" class="nav-link" data-scroll-target="#read-data-into-r"><span class="header-section-number">2.2</span> Read data into R</a></li>
-  <li><a href="#define-table-properties" id="toc-define-table-properties" class="nav-link" data-scroll-target="#define-table-properties"><span class="header-section-number">2.3</span> Define table properties</a></li>
-  <li><a href="#write-to-db" id="toc-write-to-db" class="nav-link" data-scroll-target="#write-to-db"><span class="header-section-number">2.4</span> Write to db</a></li>
-  </ul><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/SSB500.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
+<li><a href="#setup-schema" id="toc-setup-schema" class="nav-link active" data-scroll-target="#setup-schema"><span class="header-section-number">3.1</span> Setup schema</a></li>
+  <li><a href="#define-table-properties" id="toc-define-table-properties" class="nav-link" data-scroll-target="#define-table-properties"><span class="header-section-number">3.2</span> Define table properties</a></li>
+  <li><a href="#write-to-db" id="toc-write-to-db" class="nav-link" data-scroll-target="#write-to-db"><span class="header-section-number">3.3</span> Write to db</a></li>
+  </ul><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/011_bioclimatic_regions.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./SSB500.html">Write geographic data to the database</a></li><li class="breadcrumb-item"><a href="./SSB500.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">SSB500</span></a></li></ol></nav><div class="quarto-title">
-<h1 class="title"><span id="sec-setup" class="quarto-section-identifier"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">SSB500</span></span></h1>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./010_SSB500.html">Write geographic data to the database</a></li><li class="breadcrumb-item"><a href="./011_bioclimatic_regions.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bioclimatic regions</span></a></li></ol></nav><div class="quarto-title">
+<h1 class="title">
+<span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bioclimatic regions</span>
+</h1>
 </div>
 
 
@@ -252,25 +273,97 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   
 
 
-</header><p>In this chapter we prepare and write the SSB500 dataset to the database</p>
-<section id="setup-schema" class="level2" data-number="2.1"><h2 data-number="2.1" class="anchored" data-anchor-id="setup-schema">
-<span class="header-section-number">2.1</span> Setup schema</h2>
-<p>Setting up a new schema called ssb_grids. Here we can store SSB500, but also SSB10km which may become relevant.</p>
+</header><p>Here we prepare a custom version of the bio-climatic regions of Norway <span class="citation" data-cites="bakkestuen2008">(<a href="#ref-bakkestuen2008" role="doc-biblioref">Bakkestuen et al. 2008</a>)</span>. The regions are made up of the different combinations of zones and sections. This yields 23 unique types. For our purpose we want to combine some regions, and we therefore end up with 11 types (<a href="#fig-bioclimaticRegions" class="quarto-xref">Figure&nbsp;<span>3.1</span></a>) The data is in 1km^2 vector squares an there is a column called ´SSBID´ which refers to the SSB1000 grid.</p>
+<div id="fig-bioclimaticRegions" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-bioclimaticRegions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/bioclimaticRegions.jpg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bioclimaticRegions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.1: Bioclimatic regions
+</figcaption></figure>
+</div>
 <div class="cell">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">new_schemas</span> <span class="op">&lt;-</span> <span class="st">"CREATE SCHEMA ssb_grids"</span></span>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># file path to locally stored data</span></span>
+<span><span class="va">pathD</span> <span class="op">&lt;-</span> <span class="st">"/data/R/GeoSpatialData/BiogeographicalRegions/Norway_PCA_klima/Original/20170614_Bioklima/20170614_Bioklima.gdb"</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># read in the data and convert to tibbles for easy joins</span></span>
+<span><span class="va">soner</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html">read_sf</a></span><span class="op">(</span><span class="va">pathD</span>, layer <span class="op">=</span> <span class="st">"Soner2017"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">as_tibble</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>Sone <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span></span>
+<span>    <span class="co"># combining boreonemoral and south-boreal</span></span>
+<span>    <span class="va">Sone_kode</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"6SO-1"</span>, <span class="st">"6SO-2"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"6SO-1-2"</span>,</span>
+<span>    <span class="co"># combining north-boreal and alpine</span></span>
+<span>    <span class="co"># I checked the WMS data and there the alpine zones are all combined in 6SO-5</span></span>
+<span>    <span class="va">Sone_kode</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"6SO-4"</span>, <span class="st">"6SO-5"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"6SO-4-5"</span>,</span>
+<span>    .default <span class="op">=</span> <span class="va">Sone_kode</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># unique(soner$Sone) </span></span>
+<span><span class="co"># I check the extents against the geographical region map to ensure no big data holes</span></span>
+<span><span class="co"># and it looks ok. </span></span>
+<span></span>
+<span><span class="va">seksjoner</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html">read_sf</a></span><span class="op">(</span><span class="va">pathD</span>, layer <span class="op">=</span> <span class="st">"Seksjoner2017"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">as_tibble</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>Seksjon <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span></span>
+<span>    <span class="co"># combining sections O1 and OC</span></span>
+<span>    <span class="va">Seksjon_ko</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"6SE-3"</span>, <span class="st">"6SE-4"</span><span class="op">)</span> <span class="op">~</span> <span class="st">"6SE-3-4"</span>,</span>
+<span>    .default <span class="op">=</span> <span class="va">Seksjon_ko</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># unique(seksjoner$Seksjon)</span></span>
+<span></span>
+<span><span class="co"># join based on SSB IDs and convert to sf object again</span></span>
+<span><span class="va">BCreg</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">soner</span> , <span class="va">seksjoner</span> <span class="op">|&gt;</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">Shape</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu">join_by</span><span class="op">(</span><span class="va">SSBID</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>BCregion <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="va">Seksjon</span>, <span class="va">Sone</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="va">SSBID</span>,</span>
+<span>  <span class="va">Sone</span>,</span>
+<span>  <span class="va">Seksjon</span>,</span>
+<span>  <span class="va">BCregion</span>,</span>
+<span>  <span class="va">Shape</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This custom map will be used for stratifying the samples, i.e.&nbsp;givem them equal importance in the sampling. We see from <a href="#fig-bioclimaticRegionsPie" class="quarto-xref">Figure&nbsp;<span>3.2</span></a> that this means amongst other things that we down-weight the relative sampling effort in weakly oceanic (inlc. the transitional ‘OC’ section) parts of the north-boreal and alpine zones. They make up about 1/3 of the total area in Norway, but when we stratify the sampling, they only get the same sampling effort as the other strata.</p>
+<div class="cell">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/grDevices/png.html">png</a></span><span class="op">(</span><span class="st">"img/bcregPie.png"</span>, width <span class="op">=</span> <span class="fl">1480</span>, height <span class="op">=</span> <span class="fl">1480</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">BCreg</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">webr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/webr/man/PieDonut.html">PieDonut</a></span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span><span class="va">Sone</span>, <span class="va">Seksjon</span><span class="op">)</span>,</span>
+<span>                 ratioByGroup<span class="op">=</span><span class="cn">FALSE</span>,</span>
+<span>                 labelposition<span class="op">=</span><span class="fl">1</span>,</span>
+<span>                 r0<span class="op">=</span><span class="fl">0</span>,</span>
+<span>                 r1 <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>                 r2 <span class="op">=</span> <span class="fl">1.2</span>,</span>
+<span>                 showPieName <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>                 pieLabelSize <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>                 donutLabelSize <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="fig-bioclimaticRegionsPie" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-bioclimaticRegionsPie-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="img/bcregPie.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bioclimaticRegionsPie-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.2: Relative distribution of land area across the 11 bio-climatic regions.
+</figcaption></figure>
+</div>
+<section id="setup-schema" class="level2" data-number="3.1"><h2 data-number="3.1" class="anchored" data-anchor-id="setup-schema">
+<span class="header-section-number">3.1</span> Setup schema</h2>
+<p>Setting up a new schema called helper_variables. Here we can store helper variables that we use to either stratify or balance our spatial sample.</p>
+<div class="cell">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">new_schemas</span> <span class="op">&lt;-</span> <span class="st">"CREATE SCHEMA helper_variables"</span></span>
 <span><span class="fu">dbSendQuery</span><span class="op">(</span><span class="va">con</span>, <span class="va">new_schemas</span><span class="op">)</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Write queries to grant read only access to all.</p>
 <div class="cell">
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">priv</span> <span class="op">&lt;-</span> <span class="st">"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro"</span></span>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">priv</span> <span class="op">&lt;-</span> <span class="st">"ALTER DEFAULT PRIVILEGES IN SCHEMA helper_variables GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro"</span></span>
 <span></span>
-<span><span class="va">priv2</span> <span class="op">&lt;-</span> <span class="st">"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw"</span></span>
+<span><span class="va">priv2</span> <span class="op">&lt;-</span> <span class="st">"ALTER DEFAULT PRIVILEGES IN SCHEMA helper_variables GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw"</span></span>
 <span></span>
-<span><span class="va">priv3</span> <span class="op">&lt;-</span> <span class="st">"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin"</span></span>
+<span><span class="va">priv3</span> <span class="op">&lt;-</span> <span class="st">"ALTER DEFAULT PRIVILEGES IN SCHEMA helper_variables GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin"</span></span>
 <span></span>
-<span><span class="va">priv4</span> <span class="op">&lt;-</span> <span class="st">"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_admin"</span></span>
-<span><span class="va">priv5</span> <span class="op">&lt;-</span> <span class="st">"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_rw"</span></span>
-<span><span class="va">priv6</span> <span class="op">&lt;-</span> <span class="st">"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_ro"</span></span>
+<span><span class="va">priv4</span> <span class="op">&lt;-</span> <span class="st">"GRANT USAGE ON SCHEMA helper_variables  TO ag_pgsql_ano_moduler_admin"</span></span>
+<span><span class="va">priv5</span> <span class="op">&lt;-</span> <span class="st">"GRANT USAGE ON SCHEMA helper_variables  TO ag_pgsql_ano_moduler_rw"</span></span>
+<span><span class="va">priv6</span> <span class="op">&lt;-</span> <span class="st">"GRANT USAGE ON SCHEMA helper_variables  TO ag_pgsql_ano_moduler_ro"</span></span>
 <span></span>
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv</span><span class="op">)</span></span>
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv2</span><span class="op">)</span></span>
@@ -279,36 +372,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv5</span><span class="op">)</span></span>
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv6</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section><section id="read-data-into-r" class="level2" data-number="2.2"><h2 data-number="2.2" class="anchored" data-anchor-id="read-data-into-r">
-<span class="header-section-number">2.2</span> Read data into R</h2>
-<p>We use RStudio as the interface when adding new data to the database. We start by bringing the data into our environment.</p>
-<p>First we can get the entire SSB500 dataset.</p>
-<div class="cell">
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">SSBpath</span> <span class="op">&lt;-</span> <span class="st">"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Data/SSB0500M_L/ruter500m_Norge.shp"</span></span>
-<span><span class="va">SSB500</span> <span class="op">&lt;-</span> <span class="fu">read_sf</span><span class="op">(</span><span class="va">SSBpath</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">st_transform</span><span class="op">(</span><span class="fl">25833</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Strip down the number of columns</p>
-<div class="cell">
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">SSB500</span> <span class="op">&lt;-</span> <span class="va">SSB500</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">select</span><span class="op">(</span>ssbid <span class="op">=</span> <span class="va">SSBid</span><span class="op">)</span> <span class="co"># postgre doesnt like capital letters</span></span>
-<span></span>
-<span><span class="co"># the geometry column needs to be named 'geom'</span></span>
-<span><span class="fu">st_geometry</span><span class="op">(</span><span class="va">SSB500</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"geom"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>This data consists of perfect 500x500 grid cells arranged on rounded coordinates in the UTM sone 33 CRS.</p>
-</section><section id="define-table-properties" class="level2" data-number="2.3"><h2 data-number="2.3" class="anchored" data-anchor-id="define-table-properties">
-<span class="header-section-number">2.3</span> Define table properties</h2>
+</section><section id="define-table-properties" class="level2" data-number="3.2"><h2 data-number="3.2" class="anchored" data-anchor-id="define-table-properties">
+<span class="header-section-number">3.2</span> Define table properties</h2>
 <p>First we define the table properties</p>
 <div class="cell">
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">q1</span> <span class="op">&lt;-</span> <span class="st">"create table ssb_grids.ssb_500 (</span></span>
-<span><span class="st">ssbid character varying(50) primary key,</span></span>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">q1</span> <span class="op">&lt;-</span> <span class="st">"create table helper_variables.bioclimatic_regions (</span></span>
+<span><span class="st">ssb1000id character varying(50) primary key,</span></span>
 <span><span class="st">geom geometry(polygon,25833)</span></span>
 <span><span class="st">);"</span></span>
 <span></span>
 <span><span class="co"># indices makes the database work faster. It should be added to all tables that are looked up frequently</span></span>
-<span><span class="va">q2</span> <span class="op">&lt;-</span> <span class="st">"create index on ssb_grids.ssb_500 using btree(ssbid);"</span></span>
-<span><span class="va">q3</span> <span class="op">&lt;-</span> <span class="st">"create index on ssb_grids.ssb_500 using gist(geom);"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span><span class="va">q2</span> <span class="op">&lt;-</span> <span class="st">"create index on helper_variables.bioclimatic_regions using btree(ssb1000id);"</span></span>
+<span><span class="va">q3</span> <span class="op">&lt;-</span> <span class="st">"create index on helper_variables.bioclimatic_regions using gist(geom);"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># sending the queries:</span></span>
@@ -316,21 +391,69 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q2</span><span class="op">)</span></span>
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q3</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>We defined geom to be polygon. Now let’s just check that that is trua, and there are no multi-polygons for example.</p>
+<p>I set the geom column to be *polygon’, but it’s actually a multipolygon. This could cause errors down the line.</p>
 <div class="cell">
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">st_geometry_type</span><span class="op">(</span><span class="va">SSB500</span>, by_geometry <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">st_geometry_type</span><span class="op">(</span><span class="va">BCreg</span>, by_geometry <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Yes, they are all polygons.</p>
-</section><section id="write-to-db" class="level2" data-number="2.4"><h2 data-number="2.4" class="anchored" data-anchor-id="write-to-db">
-<span class="header-section-number">2.4</span> Write to db</h2>
-<p>Then we write data to the ssb_500 table.</p>
+<p>I therefore ran this code in DBBeaver</p>
 <div class="cell">
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_sf</span><span class="op">(</span><span class="va">SSB500</span>, dsn <span class="op">=</span> <span class="va">con</span>,</span>
-<span>         layer <span class="op">=</span> <span class="fu">Id</span><span class="op">(</span>schema <span class="op">=</span> <span class="st">"ssb_grids"</span>, table <span class="op">=</span> <span class="st">"ssb_500"</span><span class="op">)</span>, </span>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ALTER TABLE HELPER_VARIABLES.BIOCLIMATIC_REGIONS </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ALTER COLUMN geom TYPE <span class="fu">geometry</span>(MULTIPOLYGON, <span class="dv">25833</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section><section id="write-to-db" class="level2" data-number="3.3"><h2 data-number="3.3" class="anchored" data-anchor-id="write-to-db">
+<span class="header-section-number">3.3</span> Write to db</h2>
+<p>Then I will write the file to the database.</p>
+<div class="cell">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># turn back into sf object</span></span>
+<span><span class="va">BCreg</span> <span class="op">&lt;-</span> <span class="va">BCreg</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">st_as_sf</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># check CRS</span></span>
+<span><span class="fu">st_crs</span><span class="op">(</span><span class="va">BCreg</span><span class="op">)</span> <span class="co">#32633 (we want 25833 i.e. ETRS89 / UTM zone 33N)</span></span>
+<span></span>
+<span><span class="co"># transform</span></span>
+<span><span class="va">BCreg</span> <span class="op">&lt;-</span> <span class="va">BCreg</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">st_transform</span><span class="op">(</span><span class="fl">25833</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">BCreg</span> <span class="op">&lt;-</span> <span class="va">BCreg</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span></span>
+<span>    ssb1000id <span class="op">=</span> <span class="va">SSBID</span>,</span>
+<span>    <span class="va">BCregion</span>,</span>
+<span>    <span class="va">Shape</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="co"># special code to rename the geometry</span></span>
+<span><span class="fu">st_geometry</span><span class="op">(</span><span class="va">BCreg</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"geom"</span></span>
+<span></span>
+<span><span class="fu">write_sf</span><span class="op">(</span><span class="va">BCreg</span>, dsn <span class="op">=</span> <span class="va">con</span>,</span>
+<span>         layer <span class="op">=</span> <span class="fu">Id</span><span class="op">(</span>schema <span class="op">=</span> <span class="st">"helper_variables"</span>, table <span class="op">=</span> <span class="st">"bioclimatic_regions"</span><span class="op">)</span>, </span>
 <span>         append <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>I also forgot to add a column, so I add it now:</p>
+<div class="cell">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">q4</span> <span class="op">&lt;-</span> <span class="st">"ALTER TABLE helper_variables.bioclimatic_regions ADD BCregion character varying(50)"</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q4</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>And then update the table with data as well</p>
+<div class="cell">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_sf</span><span class="op">(</span><span class="va">BCreg</span>, dsn <span class="op">=</span> <span class="va">con</span>,</span>
+<span>         layer <span class="op">=</span> <span class="fu">Id</span><span class="op">(</span>schema <span class="op">=</span> <span class="st">"helper_variables"</span>, table <span class="op">=</span> <span class="st">"bioclimatic_regions"</span><span class="op">)</span>, </span>
+<span>         append <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>I also keep a version on the R: server</p>
+<div class="cell">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">path_store</span> <span class="op">&lt;-</span> <span class="st">"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Data/bioclimaticRegions.gpkg"</span></span>
+<span><span class="fu">write_sf</span><span class="op">(</span><span class="va">BCreg</span>, dsn <span class="op">=</span> <span class="va">path_store</span>,driver <span class="op">=</span> <span class="st">"GPKG"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="st">"/home/"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 
 
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-bakkestuen2008" class="csl-entry" role="listitem">
+Bakkestuen, V., Erikstad, L., and Halvorsen, R. 2008. Step-less models for regional environmental variation in Norway. Journal of Biogeography <strong>35</strong>(10): 1906–1922. doi:<a href="https://doi.org/10.1111/j.1365-2699.2008.01941.x">10.1111/j.1365-2699.2008.01941.x</a>.
+</div>
+</div>
 </section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -740,13 +863,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
-      <a href="./connecting.html" class="pagination-link" aria-label="Connecting to the database">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Connecting to the database</span></span>
+      <a href="./010_SSB500.html" class="pagination-link" aria-label="SSB500">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">SSB500</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./bioclimatic_regions.html" class="pagination-link" aria-label="Bioclimatic regions">
-        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bioclimatic regions</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./020_samplingFrames.html" class="pagination-link" aria-label="Sampling frames">
+        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
@@ -754,4 +877,4 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/SSB500.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/011_bioclimatic_regions.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>

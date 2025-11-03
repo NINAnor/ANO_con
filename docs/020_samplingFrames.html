@@ -61,8 +61,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./readFromDb.html" rel="next">
-<link href="./bioclimatic_regions.html" rel="prev">
+<link href="./021_readFromDb.html" rel="next">
+<link href="./011_bioclimatic_regions.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -106,7 +106,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./samplingFrames.html">Write tabular data to the database</a></li><li class="breadcrumb-item"><a href="./samplingFrames.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./020_samplingFrames.html">Write tabular data to the database</a></li><li class="breadcrumb-item"><a href="./020_samplingFrames.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></a></li></ol></nav>
         <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -161,7 +161,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./connecting.html" class="sidebar-item-text sidebar-link">
+  <a href="./001_connecting.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Connecting to the database</span></span></a>
   </div>
 </li>
@@ -176,13 +176,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./SSB500.html" class="sidebar-item-text sidebar-link">
+  <a href="./010_SSB500.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">SSB500</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./bioclimatic_regions.html" class="sidebar-item-text sidebar-link">
+  <a href="./011_bioclimatic_regions.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bioclimatic regions</span></span></a>
   </div>
 </li>
@@ -199,7 +199,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./samplingFrames.html" class="sidebar-item-text sidebar-link active">
+  <a href="./020_samplingFrames.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></span></a>
   </div>
 </li>
@@ -216,7 +216,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./readFromDb.html" class="sidebar-item-text sidebar-link">
+  <a href="./021_readFromDb.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Read data from the database</span></span></a>
   </div>
 </li>
@@ -232,16 +232,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
 <li><a href="#setup-schema" id="toc-setup-schema" class="nav-link active" data-scroll-target="#setup-schema"><span class="header-section-number">4.1</span> Setup schema</a></li>
   <li>
-<a href="#ano-havstrand" id="toc-ano-havstrand" class="nav-link" data-scroll-target="#ano-havstrand"><span class="header-section-number">4.2</span> ANO Havstrand</a>
+<a href="#ano-v%C3%A5tmark" id="toc-ano-våtmark" class="nav-link" data-scroll-target="#ano-v%C3%A5tmark"><span class="header-section-number">4.2</span> ANO våtmark</a>
   <ul class="collapse">
 <li><a href="#define-table-properties" id="toc-define-table-properties" class="nav-link" data-scroll-target="#define-table-properties"><span class="header-section-number">4.2.1</span> Define table properties</a></li>
   <li><a href="#write-to-db" id="toc-write-to-db" class="nav-link" data-scroll-target="#write-to-db"><span class="header-section-number">4.2.2</span> Write to db</a></li>
   </ul>
 </li>
-  </ul><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/samplingFrames.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
+  <li>
+<a href="#ano-havstrand" id="toc-ano-havstrand" class="nav-link" data-scroll-target="#ano-havstrand"><span class="header-section-number">4.3</span> ANO Havstrand</a>
+  <ul class="collapse">
+<li><a href="#define-table-properties-1" id="toc-define-table-properties-1" class="nav-link" data-scroll-target="#define-table-properties-1"><span class="header-section-number">4.3.1</span> Define table properties</a></li>
+  <li><a href="#write-to-db-1" id="toc-write-to-db-1" class="nav-link" data-scroll-target="#write-to-db-1"><span class="header-section-number">4.3.2</span> Write to db</a></li>
+  </ul>
+</li>
+  </ul><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/020_samplingFrames.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./samplingFrames.html">Write tabular data to the database</a></li><li class="breadcrumb-item"><a href="./samplingFrames.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></a></li></ol></nav><div class="quarto-title">
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./020_samplingFrames.html">Write tabular data to the database</a></li><li class="breadcrumb-item"><a href="./020_samplingFrames.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></a></li></ol></nav><div class="quarto-title">
 <h1 class="title">
 <span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span>
 </h1>
@@ -261,6 +268,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header><p>We will have different sampling frames, also called the <em>universe</em>, for the different ANO-modules.</p>
 <section id="setup-schema" class="level2" data-number="4.1"><h2 data-number="4.1" class="anchored" data-anchor-id="setup-schema">
 <span class="header-section-number">4.1</span> Setup schema</h2>
+<p>This part sets up the schema, and is only done ones.</p>
 <div class="cell">
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">schema_ur</span> <span class="op">&lt;-</span> <span class="st">"CREATE SCHEMA sampling_frames"</span></span>
 <span><span class="fu">dbSendQuery</span><span class="op">(</span><span class="va">con</span>, <span class="va">schema_ur</span><span class="op">)</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -281,12 +289,140 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv5</span><span class="op">)</span></span>
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">priv6</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section><section id="ano-havstrand" class="level2" data-number="4.2"><h2 data-number="4.2" class="anchored" data-anchor-id="ano-havstrand">
-<span class="header-section-number">4.2</span> ANO Havstrand</h2>
+</section><section id="ano-våtmark" class="level2" data-number="4.2"><h2 data-number="4.2" class="anchored" data-anchor-id="ano-våtmark">
+<span class="header-section-number">4.2</span> ANO våtmark</h2>
+<p>Here we upload the dataframe with SSB-id’s that make up the sampling frame for ANO våtmark (wetlands). The dataframe also contain auxillary variables used for balansing and stratifying the sampling. All the datasets and code (python) to create this dataframe if or will be uploaded to the database as well.</p>
+<p>Read data into R:</p>
+<div class="cell">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://readr.tidyverse.org">readr</a></span><span class="op">)</span></span>
+<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_delim</a></span><span class="op">(</span><span class="st">"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/ruter500m_Norge.csv"</span>, </span>
+<span>    delim <span class="op">=</span> <span class="st">";"</span>, escape_double <span class="op">=</span> <span class="cn">FALSE</span>,  trim_ws <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># removing some columns</span></span>
+<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">dat</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">Join_Count</span>,</span>
+<span>         <span class="op">-</span><span class="va">TARGET_FID</span>,</span>
+<span>         <span class="op">-</span><span class="va">Shape_Leng</span>,</span>
+<span>         <span class="op">-</span><span class="va">Shape_Length</span>,</span>
+<span>         <span class="op">-</span><span class="va">Shape_Area</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># There are some columns that should be numeric, but are read initial as characters with leading apostrophes and the wrong decimal sign.</span></span>
+<span><span class="va">toConvert</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"rFerskvann"</span>,</span>
+<span>  <span class="st">"rHav"</span>,</span>
+<span>  <span class="st">"rSnoIsbre"</span>,</span>
+<span>  <span class="st">"rBebygdSamf"</span>,</span>
+<span>  <span class="st">"minSlope"</span>,</span>
+<span>  <span class="st">"meanSlope"</span>,</span>
+<span>  <span class="st">"maxSlope"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">dat</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="va">toConvert</span>, <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span><span class="st">"^'"</span>, <span class="st">""</span>, <span class="va">.</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="va">toConvert</span>, <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span><span class="st">","</span>, <span class="st">"."</span>, <span class="va">.</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="va">toConvert</span>, <span class="va">as.numeric</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="va">toConvert</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">x</span>, digits <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">rename</span><span class="op">(</span>ssbid <span class="op">=</span> <span class="va">SSBid</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We start with 1 880 382 sampling units, but we want to exclude sampling units with 100% water (ocean or freshwater). There are 516201 units of marine waters and 13263 with freshwater. We could perhaps also exclude units with 100% build up area, but I’m at this moment not sure we can be fully sure there is no wetland in those units. Units with snow and ice are kept, becaus ethey can become wetalnds in a few decades.</p>
+<div class="cell">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dat_full</span> <span class="op">&lt;-</span> <span class="va">dat</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">[</span><span class="va">dat_full</span><span class="op">$</span><span class="va">rHav</span> <span class="op">==</span> <span class="fl">100</span>,<span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">[</span><span class="va">dat_full</span><span class="op">$</span><span class="va">rFerskvann</span> <span class="op">==</span> <span class="fl">100</span>,<span class="op">]</span><span class="op">)</span></span>
+<span>  </span>
+<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">dat</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">rHav</span> <span class="op">&lt;</span> <span class="fl">100</span> <span class="op">&amp;</span> <span class="va">rFerskvann</span> <span class="op">&lt;</span><span class="fl">100</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">dat_full</span><span class="op">)</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span> <span class="co"># 529464 Correct</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span> <span class="co">#1350918</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span><span class="op">/</span><span class="fl">4</span> <span class="co"># 337 729.5</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">anyDuplicated</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">ssbid</span><span class="op">)</span> <span class="co"># no duplicates</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we are down to 1 644 092 units. If we divide by 4 to get km2, we get a little higher than the true value for the Norwegian mainland, which is as expected since we include some coastal waters.</p>
+<p>We also need a primary key, and therefore I add a unique identifier.</p>
+<div class="cell">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu">uuid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/uuid/man/UUIDgenerate.html">UUIDgenerate</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">anyDuplicated</a></span><span class="op">(</span><span class="va">ids</span><span class="op">)</span></span>
+<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">dat</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span></span>
+<span>    vaatmark_id <span class="op">=</span> <span class="va">ids</span></span>
+<span>  <span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">dat</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span></span>
+<span>    <span class="va">ssbid</span>,</span>
+<span>    <span class="va">vaatmark_id</span>,</span>
+<span>    <span class="va">ost</span>,</span>
+<span>    <span class="va">nord</span>,</span>
+<span>    centroid_x <span class="op">=</span> <span class="va">CENTROID_X</span>,</span>
+<span>    centroid_y <span class="op">=</span> <span class="va">CENTROID_Y</span>,</span>
+<span>    komm2016 <span class="op">=</span> <span class="va">Komm2016</span>,</span>
+<span>    fylk2016 <span class="op">=</span> <span class="va">Fylk2016</span>,</span>
+<span>    r_ferskvann <span class="op">=</span> <span class="va">rFerskvann</span>,</span>
+<span>    r_hav <span class="op">=</span> <span class="va">rHav</span>,</span>
+<span>    r_sno_isbre <span class="op">=</span> <span class="va">rSnoIsbre</span>,</span>
+<span>    r_bebygd_samf <span class="op">=</span> <span class="va">rBebygdSamf</span>,</span>
+<span>    mean_slope <span class="op">=</span> <span class="va">meanSlope</span>,</span>
+<span>    ssbid_1000 <span class="op">=</span> <span class="va">SSBid_1000</span>,</span>
+<span>    sone_kode <span class="op">=</span> <span class="va">Sone_kode</span>,</span>
+<span>    seksjon_kode <span class="op">=</span> <span class="va">Seksjon_kode</span>,</span>
+<span>    abi <span class="op">=</span> <span class="va">ABI</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="define-table-properties" class="level3" data-number="4.2.1"><h3 data-number="4.2.1" class="anchored" data-anchor-id="define-table-properties">
+<span class="header-section-number">4.2.1</span> Define table properties</h3>
+<p>We will name the table <em>samplingframe_vaatmark_2025</em>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">q1</span> <span class="op">&lt;-</span> <span class="st">"create table sampling_frames.samplingframe_vaatmark_2025 (</span></span>
+<span><span class="st">vaatmark_id character varying(50) primary key,</span></span>
+<span><span class="st">ssbid character varying(50),</span></span>
+<span><span class="st">ost integer,</span></span>
+<span><span class="st">nord integer,</span></span>
+<span><span class="st">centroid_x numeric(24,0),</span></span>
+<span><span class="st">centroid_y numeric(24,0),</span></span>
+<span><span class="st">komm2016 character varying(5),</span></span>
+<span><span class="st">fylk2016 character varying(5),</span></span>
+<span><span class="st">r_ferskvann numeric(10,5),</span></span>
+<span><span class="st">r_hav numeric(10,5),</span></span>
+<span><span class="st">r_sno_isbre numeric(10,5),</span></span>
+<span><span class="st">r_bebygd_samf numeric(10,5),</span></span>
+<span><span class="st">mean_slope numeric(10,5),</span></span>
+<span><span class="st">ssbid_1000 numeric(15,0),</span></span>
+<span><span class="st">sone_kode character varying(7),</span></span>
+<span><span class="st">seksjon_kode character varying(7),</span></span>
+<span><span class="st">abi integer,</span></span>
+<span><span class="st">CONSTRAINT fk_ssb_500</span></span>
+<span><span class="st">      FOREIGN KEY (ssbid)</span></span>
+<span><span class="st">        REFERENCES ssb_grids.ssb_500 (ssbid)</span></span>
+<span><span class="st">);"</span></span>
+<span></span>
+<span><span class="co"># indices makes the database work faster. It should be added to all tables that are looked up frequently</span></span>
+<span><span class="va">q2</span> <span class="op">&lt;-</span> <span class="st">"create index on sampling_frames.samplingframe_vaatmark_2025 using btree(ssbid);"</span></span>
+<span><span class="va">q3</span> <span class="op">&lt;-</span> <span class="st">"create index on sampling_frames.samplingframe_vaatmark_2025 using btree(vaatmark_id);"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># sending the queries:</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q1</span><span class="op">)</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q2</span><span class="op">)</span></span>
+<span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q3</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section><section id="write-to-db" class="level3" data-number="4.2.2"><h3 data-number="4.2.2" class="anchored" data-anchor-id="write-to-db">
+<span class="header-section-number">4.2.2</span> Write to db</h3>
+<p>Then we write data to the samplingframe_havstrand_2024 table.</p>
+<div class="cell">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_sf</span><span class="op">(</span><span class="va">dat</span>, dsn <span class="op">=</span> <span class="va">con</span>,</span>
+<span>         layer <span class="op">=</span> <span class="fu">Id</span><span class="op">(</span>schema <span class="op">=</span> <span class="st">"sampling_frames"</span>, table <span class="op">=</span> <span class="st">"samplingframe_vaatmark_2025"</span><span class="op">)</span>, </span>
+<span>         append <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section></section><section id="ano-havstrand" class="level2" data-number="4.3"><h2 data-number="4.3" class="anchored" data-anchor-id="ano-havstrand">
+<span class="header-section-number">4.3</span> ANO Havstrand</h2>
 <p>For ANO Havstrand (ANO Coast), SSB500 has been masked to only include grid cells that overlap with the Norwegian coastline. The script for doing that is written in python ad can be found here: <em>/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/</em></p>
 <p>Read data into R:</p>
 <div class="cell">
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coast_path</span> <span class="op">&lt;-</span> <span class="st">"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/CoastalSampling3.gdb"</span></span>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coast_path</span> <span class="op">&lt;-</span> <span class="st">"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/CoastalSampling3.gdb"</span></span>
 <span></span>
 <span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_layers.html">st_layers</a></span><span class="op">(</span><span class="va">coast_path</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -316,11 +452,11 @@ Available layers:
 </div>
 <p>SSB500_Coast4 contains the SSB500 grid cells that overlap with the coastline.</p>
 <div class="cell">
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coastSSB</span> <span class="op">&lt;-</span> <span class="fu">read_sf</span><span class="op">(</span><span class="va">coast_path</span>, layer <span class="op">=</span> <span class="st">"SSB500_Coast4"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coastSSB</span> <span class="op">&lt;-</span> <span class="fu">read_sf</span><span class="op">(</span><span class="va">coast_path</span>, layer <span class="op">=</span> <span class="st">"SSB500_Coast4"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>The SSBid will be the foregn key, linking to ssb_500. We also need a primary key, and therefore I add a unique identifier.</p>
+<p>The SSBid will be the foreign key, linking to ssb_500. We also need a primary key, and therefore I add a unique identifier.</p>
 <div class="cell">
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu">UUIDgenerate</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">coastSSB</span><span class="op">)</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu">UUIDgenerate</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">coastSSB</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">anyDuplicated</a></span><span class="op">(</span><span class="va">ids</span><span class="op">)</span></span>
 <span><span class="va">coastSSB</span> <span class="op">&lt;-</span> <span class="va">coastSSB</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">select</span><span class="op">(</span>ssbid <span class="op">=</span> <span class="va">SSBid</span><span class="op">)</span><span class="op">|&gt;</span></span>
@@ -328,14 +464,14 @@ Available layers:
 </div>
 <p>We don’t need the geometry</p>
 <div class="cell">
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coastSSB</span> <span class="op">&lt;-</span> <span class="fu">as_tibble</span><span class="op">(</span><span class="va">coastSSB</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coastSSB</span> <span class="op">&lt;-</span> <span class="fu">as_tibble</span><span class="op">(</span><span class="va">coastSSB</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">select</span><span class="op">(</span><span class="va">ssbid</span>, <span class="va">havstrand_id</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="define-table-properties" class="level3" data-number="4.2.1"><h3 data-number="4.2.1" class="anchored" data-anchor-id="define-table-properties">
-<span class="header-section-number">4.2.1</span> Define table properties</h3>
+<section id="define-table-properties-1" class="level3" data-number="4.3.1"><h3 data-number="4.3.1" class="anchored" data-anchor-id="define-table-properties-1">
+<span class="header-section-number">4.3.1</span> Define table properties</h3>
 <p>We will name the table <em>samplingframe_havstrand_2024</em>.</p>
 <div class="cell">
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">q1</span> <span class="op">&lt;-</span> <span class="st">"create table sampling_frames.samplingframe_havstrand_2024 (</span></span>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">q1</span> <span class="op">&lt;-</span> <span class="st">"create table sampling_frames.samplingframe_havstrand_2024 (</span></span>
 <span><span class="st">havstrand_id character varying(50) primary key,</span></span>
 <span><span class="st">ssbid character varying(50),</span></span>
 <span><span class="st">CONSTRAINT fk_ssb_500</span></span>
@@ -348,16 +484,16 @@ Available layers:
 <span><span class="va">q3</span> <span class="op">&lt;-</span> <span class="st">"create index on sampling_frames.samplingframe_havstrand_2024 using btree(havstrand_id);"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># sending the queries:</span></span>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># sending the queries:</span></span>
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q1</span><span class="op">)</span></span>
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q2</span><span class="op">)</span></span>
 <span><span class="fu">dbSendStatement</span><span class="op">(</span><span class="va">con</span>, <span class="va">q3</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section><section id="write-to-db" class="level3" data-number="4.2.2"><h3 data-number="4.2.2" class="anchored" data-anchor-id="write-to-db">
-<span class="header-section-number">4.2.2</span> Write to db</h3>
+</section><section id="write-to-db-1" class="level3" data-number="4.3.2"><h3 data-number="4.3.2" class="anchored" data-anchor-id="write-to-db-1">
+<span class="header-section-number">4.3.2</span> Write to db</h3>
 <p>Then we write data to the samplingframe_havstrand_2024 table.</p>
 <div class="cell">
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_sf</span><span class="op">(</span><span class="va">coastSSB</span>, dsn <span class="op">=</span> <span class="va">con</span>,</span>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">write_sf</span><span class="op">(</span><span class="va">coastSSB</span>, dsn <span class="op">=</span> <span class="va">con</span>,</span>
 <span>         layer <span class="op">=</span> <span class="fu">Id</span><span class="op">(</span>schema <span class="op">=</span> <span class="st">"sampling_frames"</span>, table <span class="op">=</span> <span class="st">"samplingframe_havstrand_2024"</span><span class="op">)</span>, </span>
 <span>         append <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -772,12 +908,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
-      <a href="./bioclimatic_regions.html" class="pagination-link" aria-label="Bioclimatic regions">
+      <a href="./011_bioclimatic_regions.html" class="pagination-link" aria-label="Bioclimatic regions">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bioclimatic regions</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./readFromDb.html" class="pagination-link" aria-label="Read data from the database">
+      <a href="./021_readFromDb.html" class="pagination-link" aria-label="Read data from the database">
         <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Read data from the database</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
@@ -786,4 +922,4 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/samplingFrames.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/020_samplingFrames.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>

@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Working with the ANO-moduler database",
     "section": "",
-    "text": "Introduction\nThis web site show you how to connect to the internal NINA postgreSQL database containing the spatial data for the ANO-modules. The database is found on the t2lippgsql03 server , and is called ano_moduler. This with admin rights are\nThe database contains the raw data needed to make balansed spatial samples of monitoring localities for ANO-modules.",
+    "text": "Introduction\nThis web site show you how to connect to the internal NINA postgreSQL database containing the spatial data for the ANO-modules. The database is found on the t2lippgsql03 server , and is called ano_moduler. This with admin rights are\nThe database contains the raw data needed to make balanced spatial samples of monitoring localities for ANO-modules.",
     "crumbs": [
       "Introduction"
     ]
@@ -20,84 +20,18 @@
     ]
   },
   {
-    "objectID": "connecting.html",
-    "href": "connecting.html",
+    "objectID": "001_connecting.html",
+    "href": "001_connecting.html",
     "title": "\n1  Connecting to the database\n",
     "section": "",
-    "text": "Fisrt you need to save your personal windows password to your local machine.. Don’t write it in your code. You can store it in your personal root folder like this (just change the ‘secretPassword’ to you own):\n\nsystem(\"echo '*:*:*:*:secretPassword' &gt; ~/.pgpass\")\nsystem(\"chmod 0600 ~/.pgpass\")\n\nThen you can connect:\n\ncon &lt;- DBI::dbConnect(drv = RPostgres::Postgres(), host = \"t2lippgsql03\", dbname = \"ano_moduler\")",
+    "text": "Fisrt you need to save your personal windows password to your local machine.. Don’t write it in your code. If you’re on linux, you can store it in your personal root folder like this (just change the ‘secretPassword’ to you own):\n\nsystem(\"echo '*:*:*:*:secretPassword' &gt; ~/.pgpass\")\nsystem(\"chmod 0600 ~/.pgpass\")\n\nThen you can connect:\n\ncon &lt;- DBI::dbConnect(drv = RPostgres::Postgres(), host = \"t2lippgsql03\", dbname = \"ano_moduler\")",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Connecting to the database</span>"
     ]
   },
   {
-    "objectID": "setup.html",
-    "href": "setup.html",
-    "title": "2  Setup",
-    "section": "",
-    "text": "2.1 SSB500",
-    "crumbs": [
-      "Write to the database",
-      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Setup</span>"
-    ]
-  },
-  {
-    "objectID": "setup.html#ssb500",
-    "href": "setup.html#ssb500",
-    "title": "2  Setup",
-    "section": "",
-    "text": "2.1.1 Setup schema\nSetting up a new schema called ssb_grids. Here we can store SSB500, but also SSB10km which may become relevant.\n\nnew_schemas &lt;- \"CREATE SCHEMA ssb_grids\"\ndbSendQuery(con, new_schemas) \n\nWrite queries to grant read only access to all.\n\npriv &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro\"\n\npriv2 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw\"\n\npriv3 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin\"\n\npriv4 &lt;- \"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_admin\"\npriv5 &lt;- \"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_rw\"\npriv6 &lt;- \"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_ro\"\n\ndbSendStatement(con, priv)\ndbSendStatement(con, priv2)\ndbSendStatement(con, priv3)\ndbSendStatement(con, priv4)\ndbSendStatement(con, priv5)\ndbSendStatement(con, priv6)\n\n\n\n2.1.2 Read data into R\nWe use RStudio as the interface when adding new data to the database. We start by bringing the data into our environment.\nFirst we can get the entire SSB500 dataset.\n\nSSBpath &lt;- \"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Data/SSB0500M_L/ruter500m_Norge.shp\"\nSSB500 &lt;- read_sf(SSBpath) |&gt;\n  st_transform(25833)\n\nStrip down the number of columns\n\nSSB500 &lt;- SSB500 |&gt;\n  select(ssbid = SSBid) # postgre doesnt like capital letters\n\n# the geometry column needs to be named 'geom'\nst_geometry(SSB500) &lt;- \"geom\"\n\nThis data consists of perfect 500x500 grid cells arranged on rounded coordinates in the UTM sone 33 CRS.\n\n\n2.1.3 Define table properties\nFirst we define the table properties\n\nq1 &lt;- \"create table ssb_grids.ssb_500 (\nssbid character varying(50) primary key,\ngeom geometry(polygon,25833)\n);\"\n\n# indices makes the database work faster. It should be added to all tables that are looked up frequently\nq2 &lt;- \"create index on ssb_grids.ssb_500 using btree(ssbid);\"\nq3 &lt;- \"create index on ssb_grids.ssb_500 using gist(geom);\"\n\n\n# sending the queries:\ndbSendStatement(con, q1)\ndbSendStatement(con, q2)\ndbSendStatement(con, q3)\n\nWe defined geom to be polygon. Now let’s just check that that is trua, and there are no multi-polygons for example.\n\nst_geometry_type(SSB500, by_geometry = F)\n\nYes, they are all polygons.\n\n\n2.1.4 Write to db\nThen we write data to the ssb_500 table.\n\nwrite_sf(SSB500, dsn = con,\n         layer = Id(schema = \"ssb_grids\", table = \"ssb_500\"), \n         append = T)",
-    "crumbs": [
-      "Write to the database",
-      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Setup</span>"
-    ]
-  },
-  {
-    "objectID": "setup.html#sampling-frames",
-    "href": "setup.html#sampling-frames",
-    "title": "2  Setup",
-    "section": "2.2 Sampling frames",
-    "text": "2.2 Sampling frames\nWe will have different sampling frames for the different ANO-modules. For ANO Havstrand, SSB500 has been masked to only include grid celle that overlap with the Norwegian coastline. The script for doing that is written in python ad can be found here: /data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/\n\n2.2.1 Setup schema\n\nschema_ur &lt;- \"CREATE SCHEMA sampling_frames\"\ndbSendQuery(con, schema_ur) \n\nWrite queries to grant read only access to all.\n\npriv &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro\"\npriv2 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw\"\npriv3 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin\"\npriv4 &lt;- \"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_admin\"\npriv5 &lt;- \"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_rw\"\npriv6 &lt;- \"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_ro\"\n\ndbSendStatement(con, priv)\ndbSendStatement(con, priv2)\ndbSendStatement(con, priv3)\ndbSendStatement(con, priv4)\ndbSendStatement(con, priv5)\ndbSendStatement(con, priv6)\n\n\n\n2.2.2 Read data into R\n\ncoast_path &lt;- \"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/CoastalSampling3.gdb\"\nsf::st_layers(coast_path)\n\nDriver: OpenFileGDB \nAvailable layers:\n                layer_name     geometry_type features fields\n1            fcNorgeKyst_l Multi Line String   101331      2\n2 fcKystline_500mSegmenter Multi Line String   240861      1\n3              Samples62_5       Multi Point   769342      2\n4              Samples83_3       Multi Point   555958      2\n5               Samples125       Multi Point   350676      2\n6            SSB500_Coast4     Multi Polygon   121920      6\n7        Hexagon62_5_Coast     Multi Polygon  2729978      3\n8        Hexagon83_3_Coast     Multi Polygon  1622139      3\n9         Hexagon125_Coast     Multi Polygon   796190      3\n               crs_name\n1 ETRS89 / UTM zone 33N\n2 ETRS89 / UTM zone 33N\n3 ETRS89 / UTM zone 33N\n4 ETRS89 / UTM zone 33N\n5 ETRS89 / UTM zone 33N\n6 ETRS89 / UTM zone 33N\n7 WGS 84 / UTM zone 33N\n8 WGS 84 / UTM zone 33N\n9 WGS 84 / UTM zone 33N\n\n\nSSB500_Coast4 contains the SSB500 grid cells that overlap with the coastline.\n\ncoastSSB &lt;- read_sf(coast_path, layer = \"SSB500_Coast4\")\n\nThe SSBid will be the foregn key, linking to ssb_500. We also need a primary key, and therefore I add a unique identifier.\n\nids &lt;- UUIDgenerate(n = nrow(coastSSB))\nanyDuplicated(ids)\ncoastSSB &lt;- coastSSB |&gt;\n  select(ssbid = SSBid)|&gt;\n  mutate(havstrand_id = ids)\n\nWe don’t need the geometry\n\ncoastSSB &lt;- as_tibble(coastSSB) |&gt;\n  select(ssbid, havstrand_id)\n\n\n\n2.2.3 Define table properties\nWe will name the table samplingframe_havstrand_2024.\n\nq1 &lt;- \"create table sampling_frames.samplingframe_havstrand_2024 (\nhavstrand_id character varying(50) primary key,\nssbid character varying(50),\nCONSTRAINT fk_ssb_500\n      FOREIGN KEY (ssbid)\n        REFERENCES ssb_grids.ssb_500 (ssbid)\n);\"\n\n# indices makes the database work faster. It should be added to all tables that are looked up frequently\nq2 &lt;- \"create index on sampling_frames.samplingframe_havstrand_2024 using btree(ssbid);\"\nq3 &lt;- \"create index on sampling_frames.samplingframe_havstrand_2024 using btree(havstrand_id);\"\n\n\n# sending the queries:\ndbSendStatement(con, q1)\ndbSendStatement(con, q2)\ndbSendStatement(con, q3)\n\n\n\n2.2.4 Write to db\nThen we write data to the samplingframe_havstrand_2024 table.\n\nwrite_sf(coastSSB, dsn = con,\n         layer = Id(schema = \"sampling_frames\", table = \"samplingframe_havstrand_2024\"), \n         append = T)",
-    "crumbs": [
-      "Write to the database",
-      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Setup</span>"
-    ]
-  },
-  {
-    "objectID": "readFromDb.html",
-    "href": "readFromDb.html",
-    "title": "\n4  Read data from the database\n",
-    "section": "",
-    "text": "Now that we have added data to the database, we can also read it back.\n\ncoast_sample &lt;- dplyr::tbl(con, dbplyr::in_schema(\"sampling_frames\", \"samplingframe_havstrand_2024\"))\ncoast_sample\n\n# Source:   SQL [?? x 2]\n# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]\n   havstrand_id                         ssbid         \n   &lt;chr&gt;                                &lt;chr&gt;         \n 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500\n 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000\n 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500\n 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000\n 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500\n 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500\n 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000\n 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000\n 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000\n10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500\n# ℹ more rows\n\n\nThis data only exists remotely still. We need to use collect to bring it down to our local machine. At the same time we can use dplyr pipelines to filter the data.\n\ncoast_sample |&gt;\n  dplyr::mutate(id = row_number()) |&gt;\n  dplyr::slice_min(n = 8, order_by = id) |&gt;\n  dplyr::collect()\n\n# A tibble: 8 × 3\n  havstrand_id                         ssbid               id\n  &lt;chr&gt;                                &lt;chr&gt;          &lt;int64&gt;\n1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500       1\n2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000       2\n3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500       3\n4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000       4\n5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500       5\n6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500       6\n7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000       7\n8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000       8\n\n\nWe can also get the geometries, which are stored in the foreign table. To do this we can use the dm package.\nWe first create a dm object from the connection object. Then we can view data easily.\n\ndm &lt;- dm::dm_from_con(con,\n  table_names = c(\"ssb_500\",\n                  \"samplingframe_havstrand_2024\"))\n\nKeys queried successfully.\nℹ Use `learn_keys = TRUE` to mute this message.\n\ndm$samplingframe_havstrand_2024\n\n# Source:   table&lt;\"ano_moduler\".\"sampling_frames\".\"samplingframe_havstrand_2024\"&gt; [?? x 2]\n# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]\n   havstrand_id                         ssbid         \n   &lt;chr&gt;                                &lt;chr&gt;         \n 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500\n 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000\n 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500\n 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000\n 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500\n 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500\n 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000\n 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000\n 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000\n10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500\n# ℹ more rows\n\n\nDM learns the relationshios between tables by reading the constraints:\n\ndm |&gt;\n  dm::dm_set_colors(\n    darkgreen = samplingframe_havstrand_2024, \n    darkblue = ssb_500) |&gt;\n  dm::dm_draw() \n\n\nThen we can read the data back, including the geometries from the parent table.\n\ndm |&gt;\n  dm::dm_flatten_to_tbl(samplingframe_havstrand_2024,\n                    .recursive = TRUE)\n\n# Source:   SQL [?? x 3]\n# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]\n   havstrand_id                         ssbid          geom                     \n   &lt;chr&gt;                                &lt;chr&gt;          &lt;pq_gmtry&gt;               \n 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500 0103000020E9640000010000…\n 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000 0103000020E9640000010000…\n 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500 0103000020E9640000010000…\n 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000 0103000020E9640000010000…\n 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500 0103000020E9640000010000…\n 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500 0103000020E9640000010000…\n 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000 0103000020E9640000010000…\n 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000 0103000020E9640000010000…\n 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000 0103000020E9640000010000…\n10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500 0103000020E9640000010000…\n# ℹ more rows\n\n\nThe geometry column is a bit weird though. Not sure what is happening there, but see this.",
-    "crumbs": [
-      "Read data from database",
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Read data from the database</span>"
-    ]
-  },
-  {
-    "objectID": "samplingFrames.html",
-    "href": "samplingFrames.html",
-    "title": "\n4  Sampling frames\n",
-    "section": "",
-    "text": "4.1 Setup schema\nschema_ur &lt;- \"CREATE SCHEMA sampling_frames\"\ndbSendQuery(con, schema_ur)\nWrite queries to grant read only access to all.\npriv &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro\"\npriv2 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw\"\npriv3 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin\"\npriv4 &lt;- \"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_admin\"\npriv5 &lt;- \"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_rw\"\npriv6 &lt;- \"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_ro\"\n\ndbSendStatement(con, priv)\ndbSendStatement(con, priv2)\ndbSendStatement(con, priv3)\ndbSendStatement(con, priv4)\ndbSendStatement(con, priv5)\ndbSendStatement(con, priv6)",
-    "crumbs": [
-      "Write tabular data to the database",
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Sampling frames</span>"
-    ]
-  },
-  {
-    "objectID": "samplingFrames.html#ano-havstrand",
-    "href": "samplingFrames.html#ano-havstrand",
-    "title": "\n4  Sampling frames\n",
-    "section": "\n4.2 ANO Havstrand",
-    "text": "4.2 ANO Havstrand\nFor ANO Havstrand (ANO Coast), SSB500 has been masked to only include grid cells that overlap with the Norwegian coastline. The script for doing that is written in python ad can be found here: /data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/\nRead data into R:\n\ncoast_path &lt;- \"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/CoastalSampling3.gdb\"\n\nsf::st_layers(coast_path)\n\nDriver: OpenFileGDB \nAvailable layers:\n                layer_name     geometry_type features fields\n1            fcNorgeKyst_l Multi Line String   101331      2\n2 fcKystline_500mSegmenter Multi Line String   240861      1\n3              Samples62_5       Multi Point   769342      2\n4              Samples83_3       Multi Point   555958      2\n5               Samples125       Multi Point   350676      2\n6            SSB500_Coast4     Multi Polygon   121920      6\n7        Hexagon62_5_Coast     Multi Polygon  2729978      3\n8        Hexagon83_3_Coast     Multi Polygon  1622139      3\n9         Hexagon125_Coast     Multi Polygon   796190      3\n               crs_name\n1 ETRS89 / UTM zone 33N\n2 ETRS89 / UTM zone 33N\n3 ETRS89 / UTM zone 33N\n4 ETRS89 / UTM zone 33N\n5 ETRS89 / UTM zone 33N\n6 ETRS89 / UTM zone 33N\n7 WGS 84 / UTM zone 33N\n8 WGS 84 / UTM zone 33N\n9 WGS 84 / UTM zone 33N\n\n\nSSB500_Coast4 contains the SSB500 grid cells that overlap with the coastline.\n\ncoastSSB &lt;- read_sf(coast_path, layer = \"SSB500_Coast4\")\n\nThe SSBid will be the foregn key, linking to ssb_500. We also need a primary key, and therefore I add a unique identifier.\n\nids &lt;- UUIDgenerate(n = nrow(coastSSB))\nanyDuplicated(ids)\ncoastSSB &lt;- coastSSB |&gt;\n  select(ssbid = SSBid)|&gt;\n  mutate(havstrand_id = ids)\n\nWe don’t need the geometry\n\ncoastSSB &lt;- as_tibble(coastSSB) |&gt;\n  select(ssbid, havstrand_id)\n\n\n4.2.1 Define table properties\nWe will name the table samplingframe_havstrand_2024.\n\nq1 &lt;- \"create table sampling_frames.samplingframe_havstrand_2024 (\nhavstrand_id character varying(50) primary key,\nssbid character varying(50),\nCONSTRAINT fk_ssb_500\n      FOREIGN KEY (ssbid)\n        REFERENCES ssb_grids.ssb_500 (ssbid)\n);\"\n\n# indices makes the database work faster. It should be added to all tables that are looked up frequently\nq2 &lt;- \"create index on sampling_frames.samplingframe_havstrand_2024 using btree(ssbid);\"\nq3 &lt;- \"create index on sampling_frames.samplingframe_havstrand_2024 using btree(havstrand_id);\"\n\n\n# sending the queries:\ndbSendStatement(con, q1)\ndbSendStatement(con, q2)\ndbSendStatement(con, q3)\n\n\n4.2.2 Write to db\nThen we write data to the samplingframe_havstrand_2024 table.\n\nwrite_sf(coastSSB, dsn = con,\n         layer = Id(schema = \"sampling_frames\", table = \"samplingframe_havstrand_2024\"), \n         append = T)",
-    "crumbs": [
-      "Write tabular data to the database",
-      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Sampling frames</span>"
-    ]
-  },
-  {
-    "objectID": "SSB500.html",
-    "href": "SSB500.html",
+    "objectID": "010_SSB500.html",
+    "href": "010_SSB500.html",
     "title": "2  SSB500",
     "section": "",
     "text": "2.1 Setup schema\nSetting up a new schema called ssb_grids. Here we can store SSB500, but also SSB10km which may become relevant.\nnew_schemas &lt;- \"CREATE SCHEMA ssb_grids\"\ndbSendQuery(con, new_schemas)\nWrite queries to grant read only access to all.\npriv &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro\"\n\npriv2 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw\"\n\npriv3 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin\"\n\npriv4 &lt;- \"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_admin\"\npriv5 &lt;- \"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_rw\"\npriv6 &lt;- \"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_ro\"\n\ndbSendStatement(con, priv)\ndbSendStatement(con, priv2)\ndbSendStatement(con, priv3)\ndbSendStatement(con, priv4)\ndbSendStatement(con, priv5)\ndbSendStatement(con, priv6)",
@@ -107,19 +41,8 @@
     ]
   },
   {
-    "objectID": "SSB500.html#ssb500",
-    "href": "SSB500.html#ssb500",
-    "title": "2  Setup",
-    "section": "",
-    "text": "2.1.1 Setup schema\nSetting up a new schema called ssb_grids. Here we can store SSB500, but also SSB10km which may become relevant.\n\nnew_schemas &lt;- \"CREATE SCHEMA ssb_grids\"\ndbSendQuery(con, new_schemas) \n\nWrite queries to grant read only access to all.\n\npriv &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro\"\n\npriv2 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw\"\n\npriv3 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA ssb_grids GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin\"\n\npriv4 &lt;- \"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_admin\"\npriv5 &lt;- \"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_rw\"\npriv6 &lt;- \"GRANT USAGE ON SCHEMA ssb_grids  TO ag_pgsql_ano_moduler_ro\"\n\ndbSendStatement(con, priv)\ndbSendStatement(con, priv2)\ndbSendStatement(con, priv3)\ndbSendStatement(con, priv4)\ndbSendStatement(con, priv5)\ndbSendStatement(con, priv6)\n\n\n2.1.2 Read data into R\nWe use RStudio as the interface when adding new data to the database. We start by bringing the data into our environment.\nFirst we can get the entire SSB500 dataset.\n\nSSBpath &lt;- \"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Data/SSB0500M_L/ruter500m_Norge.shp\"\nSSB500 &lt;- read_sf(SSBpath) |&gt;\n  st_transform(25833)\n\nStrip down the number of columns\n\nSSB500 &lt;- SSB500 |&gt;\n  select(ssbid = SSBid) # postgre doesnt like capital letters\n\n# the geometry column needs to be named 'geom'\nst_geometry(SSB500) &lt;- \"geom\"\n\nThis data consists of perfect 500x500 grid cells arranged on rounded coordinates in the UTM sone 33 CRS.\n\n2.1.3 Define table properties\nFirst we define the table properties\n\nq1 &lt;- \"create table ssb_grids.ssb_500 (\nssbid character varying(50) primary key,\ngeom geometry(polygon,25833)\n);\"\n\n# indices makes the database work faster. It should be added to all tables that are looked up frequently\nq2 &lt;- \"create index on ssb_grids.ssb_500 using btree(ssbid);\"\nq3 &lt;- \"create index on ssb_grids.ssb_500 using gist(geom);\"\n\n\n# sending the queries:\ndbSendStatement(con, q1)\ndbSendStatement(con, q2)\ndbSendStatement(con, q3)\n\nWe defined geom to be polygon. Now let’s just check that that is trua, and there are no multi-polygons for example.\n\nst_geometry_type(SSB500, by_geometry = F)\n\nYes, they are all polygons.\n\n2.1.4 Write to db\nThen we write data to the ssb_500 table.\n\nwrite_sf(SSB500, dsn = con,\n         layer = Id(schema = \"ssb_grids\", table = \"ssb_500\"), \n         append = T)",
-    "crumbs": [
-      "Write geographic data to the database",
-      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Setup</span>"
-    ]
-  },
-  {
-    "objectID": "SSB500.html#read-data-into-r",
-    "href": "SSB500.html#read-data-into-r",
+    "objectID": "010_SSB500.html#read-data-into-r",
+    "href": "010_SSB500.html#read-data-into-r",
     "title": "2  SSB500",
     "section": "\n2.2 Read data into R",
     "text": "2.2 Read data into R\nWe use RStudio as the interface when adding new data to the database. We start by bringing the data into our environment.\nFirst we can get the entire SSB500 dataset.\n\nSSBpath &lt;- \"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Data/SSB0500M_L/ruter500m_Norge.shp\"\nSSB500 &lt;- read_sf(SSBpath) |&gt;\n  st_transform(25833)\n\nStrip down the number of columns\n\nSSB500 &lt;- SSB500 |&gt;\n  select(ssbid = SSBid) # postgre doesnt like capital letters\n\n# the geometry column needs to be named 'geom'\nst_geometry(SSB500) &lt;- \"geom\"\n\nThis data consists of perfect 500x500 grid cells arranged on rounded coordinates in the UTM sone 33 CRS.",
@@ -129,19 +52,19 @@
     ]
   },
   {
-    "objectID": "SSB500.html#define-table-properties",
-    "href": "SSB500.html#define-table-properties",
+    "objectID": "010_SSB500.html#define-table-properties",
+    "href": "010_SSB500.html#define-table-properties",
     "title": "2  SSB500",
     "section": "\n2.3 Define table properties",
-    "text": "2.3 Define table properties\nFirst we define the table properties\n\nq1 &lt;- \"create table ssb_grids.ssb_500 (\nssbid character varying(50) primary key,\ngeom geometry(polygon,25833)\n);\"\n\n# indices makes the database work faster. It should be added to all tables that are looked up frequently\nq2 &lt;- \"create index on ssb_grids.ssb_500 using btree(ssbid);\"\nq3 &lt;- \"create index on ssb_grids.ssb_500 using gist(geom);\"\n\n\n# sending the queries:\ndbSendStatement(con, q1)\ndbSendStatement(con, q2)\ndbSendStatement(con, q3)\n\nWe defined geom to be polygon. Now let’s just check that that is trua, and there are no multi-polygons for example.\n\nst_geometry_type(SSB500, by_geometry = F)\n\nYes, they are all polygons.",
+    "text": "2.3 Define table properties\nFirst we define the table properties\n\nq1 &lt;- \"create table ssb_grids.ssb_500 (\nssbid character varying(50) primary key,\ngeom geometry(polygon,25833)\n);\"\n\n# indices makes the database work faster. It should be added to all tables that are looked up frequently\nq2 &lt;- \"create index on ssb_grids.ssb_500 using btree(ssbid);\"\nq3 &lt;- \"create index on ssb_grids.ssb_500 using gist(geom);\"\n\n\n# sending the queries:\ndbSendStatement(con, q1)\ndbSendStatement(con, q2)\ndbSendStatement(con, q3)\n\nWe defined geom to be polygon. Now let’s just check that that is true, and there are no multi-polygons for example.\n\nst_geometry_type(SSB500, by_geometry = F)\n\nYes, they are all polygons.",
     "crumbs": [
       "Write geographic data to the database",
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>SSB500</span>"
     ]
   },
   {
-    "objectID": "SSB500.html#write-to-db",
-    "href": "SSB500.html#write-to-db",
+    "objectID": "010_SSB500.html#write-to-db",
+    "href": "010_SSB500.html#write-to-db",
     "title": "2  SSB500",
     "section": "\n2.4 Write to db",
     "text": "2.4 Write to db\nThen we write data to the ssb_500 table.\n\nwrite_sf(SSB500, dsn = con,\n         layer = Id(schema = \"ssb_grids\", table = \"ssb_500\"), \n         append = T)",
@@ -151,8 +74,8 @@
     ]
   },
   {
-    "objectID": "bioclimatic_regions.html",
-    "href": "bioclimatic_regions.html",
+    "objectID": "011_bioclimatic_regions.html",
+    "href": "011_bioclimatic_regions.html",
     "title": "\n3  Bioclimatic regions\n",
     "section": "",
     "text": "3.1 Setup schema\nSetting up a new schema called helper_variables. Here we can store helper variables that we use to either stratify or balance our spatial sample.\nnew_schemas &lt;- \"CREATE SCHEMA helper_variables\"\ndbSendQuery(con, new_schemas)\nWrite queries to grant read only access to all.\npriv &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA helper_variables GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro\"\n\npriv2 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA helper_variables GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw\"\n\npriv3 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA helper_variables GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin\"\n\npriv4 &lt;- \"GRANT USAGE ON SCHEMA helper_variables  TO ag_pgsql_ano_moduler_admin\"\npriv5 &lt;- \"GRANT USAGE ON SCHEMA helper_variables  TO ag_pgsql_ano_moduler_rw\"\npriv6 &lt;- \"GRANT USAGE ON SCHEMA helper_variables  TO ag_pgsql_ano_moduler_ro\"\n\ndbSendStatement(con, priv)\ndbSendStatement(con, priv2)\ndbSendStatement(con, priv3)\ndbSendStatement(con, priv4)\ndbSendStatement(con, priv5)\ndbSendStatement(con, priv6)",
@@ -162,8 +85,8 @@
     ]
   },
   {
-    "objectID": "bioclimatic_regions.html#define-table-properties",
-    "href": "bioclimatic_regions.html#define-table-properties",
+    "objectID": "011_bioclimatic_regions.html#define-table-properties",
+    "href": "011_bioclimatic_regions.html#define-table-properties",
     "title": "\n3  Bioclimatic regions\n",
     "section": "\n3.2 Define table properties",
     "text": "3.2 Define table properties\nFirst we define the table properties\n\nq1 &lt;- \"create table helper_variables.bioclimatic_regions (\nssb1000id character varying(50) primary key,\ngeom geometry(polygon,25833)\n);\"\n\n# indices makes the database work faster. It should be added to all tables that are looked up frequently\nq2 &lt;- \"create index on helper_variables.bioclimatic_regions using btree(ssb1000id);\"\nq3 &lt;- \"create index on helper_variables.bioclimatic_regions using gist(geom);\"\n\n\n# sending the queries:\ndbSendStatement(con, q1)\ndbSendStatement(con, q2)\ndbSendStatement(con, q3)\n\nI set the geom column to be *polygon’, but it’s actually a multipolygon. This could cause errors down the line.\n\nst_geometry_type(BCreg, by_geometry = F)\n\nI therefore ran this code in DBBeaver\n\nALTER TABLE HELPER_VARIABLES.BIOCLIMATIC_REGIONS \nALTER COLUMN geom TYPE geometry(MULTIPOLYGON, 25833)",
@@ -173,14 +96,58 @@
     ]
   },
   {
-    "objectID": "bioclimatic_regions.html#write-to-db",
-    "href": "bioclimatic_regions.html#write-to-db",
+    "objectID": "011_bioclimatic_regions.html#write-to-db",
+    "href": "011_bioclimatic_regions.html#write-to-db",
     "title": "\n3  Bioclimatic regions\n",
     "section": "\n3.3 Write to db",
     "text": "3.3 Write to db\nThen I will write the file to the database.\n\n# turn back into sf object\nBCreg &lt;- BCreg |&gt;\n  st_as_sf()\n\n# check CRS\nst_crs(BCreg) #32633 (we want 25833 i.e. ETRS89 / UTM zone 33N)\n\n# transform\nBCreg &lt;- BCreg |&gt;\n  st_transform(25833)\n\nBCreg &lt;- BCreg |&gt;\n  select(\n    ssb1000id = SSBID,\n    BCregion,\n    Shape\n  )\n# special code to rename the geometry\nst_geometry(BCreg) &lt;- \"geom\"\n\nwrite_sf(BCreg, dsn = con,\n         layer = Id(schema = \"helper_variables\", table = \"bioclimatic_regions\"), \n         append = T)\n\nI also forgot to add a column, so I add it now:\n\nq4 &lt;- \"ALTER TABLE helper_variables.bioclimatic_regions ADD BCregion character varying(50)\"\ndbSendStatement(con, q4)\n\nAnd then update the table with data as well\n\nwrite_sf(BCreg, dsn = con,\n         layer = Id(schema = \"helper_variables\", table = \"bioclimatic_regions\"), \n         append = F)\n\nI also keep a version on the R: server\n\npath_store &lt;- \"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Data/bioclimaticRegions.gpkg\"\nwrite_sf(BCreg, dsn = path_store,driver = \"GPKG\")\n\n\nlist.files(\"/home/\")\n\n\n\n\n\nBakkestuen, V., Erikstad, L., and Halvorsen, R. 2008. Step-less models for regional environmental variation in Norway. Journal of Biogeography 35(10): 1906–1922. doi:10.1111/j.1365-2699.2008.01941.x.",
     "crumbs": [
       "Write geographic data to the database",
       "<span class='chapter-number'>3</span>  <span class='chapter-title'>Bioclimatic regions</span>"
+    ]
+  },
+  {
+    "objectID": "020_samplingFrames.html",
+    "href": "020_samplingFrames.html",
+    "title": "\n4  Sampling frames\n",
+    "section": "",
+    "text": "4.1 Setup schema\nThis part sets up the schema, and is only done ones.\nschema_ur &lt;- \"CREATE SCHEMA sampling_frames\"\ndbSendQuery(con, schema_ur)\nWrite queries to grant read only access to all.\npriv &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro\"\npriv2 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw\"\npriv3 &lt;- \"ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin\"\npriv4 &lt;- \"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_admin\"\npriv5 &lt;- \"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_rw\"\npriv6 &lt;- \"GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_ro\"\n\ndbSendStatement(con, priv)\ndbSendStatement(con, priv2)\ndbSendStatement(con, priv3)\ndbSendStatement(con, priv4)\ndbSendStatement(con, priv5)\ndbSendStatement(con, priv6)",
+    "crumbs": [
+      "Write tabular data to the database",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Sampling frames</span>"
+    ]
+  },
+  {
+    "objectID": "020_samplingFrames.html#ano-våtmark",
+    "href": "020_samplingFrames.html#ano-våtmark",
+    "title": "\n4  Sampling frames\n",
+    "section": "\n4.2 ANO våtmark",
+    "text": "4.2 ANO våtmark\nHere we upload the dataframe with SSB-id’s that make up the sampling frame for ANO våtmark (wetlands). The dataframe also contain auxillary variables used for balansing and stratifying the sampling. All the datasets and code (python) to create this dataframe if or will be uploaded to the database as well.\nRead data into R:\n\nlibrary(readr)\ndat &lt;- read_delim(\"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/ruter500m_Norge.csv\", \n    delim = \";\", escape_double = FALSE,  trim_ws = TRUE)\n\n# removing some columns\ndat &lt;- dat |&gt;\n  select(-Join_Count,\n         -TARGET_FID,\n         -Shape_Leng,\n         -Shape_Length,\n         -Shape_Area)\n\n# There are some columns that should be numeric, but are read initial as characters with leading apostrophes and the wrong decimal sign.\ntoConvert &lt;- c(\n  \"rFerskvann\",\n  \"rHav\",\n  \"rSnoIsbre\",\n  \"rBebygdSamf\",\n  \"minSlope\",\n  \"meanSlope\",\n  \"maxSlope\"\n)\n\ndat &lt;- dat |&gt;\n  mutate(across(toConvert, ~ gsub(\"^'\", \"\", .))) |&gt;\n  mutate(across(toConvert, ~ gsub(\",\", \".\", .))) |&gt;\n  mutate(across(toConvert, as.numeric)) |&gt;\n  mutate(across(toConvert, \\(x) round(x, digits = 5))) |&gt;\n  rename(ssbid = SSBid)\n\nWe start with 1 880 382 sampling units, but we want to exclude sampling units with 100% water (ocean or freshwater). There are 516201 units of marine waters and 13263 with freshwater. We could perhaps also exclude units with 100% build up area, but I’m at this moment not sure we can be fully sure there is no wetland in those units. Units with snow and ice are kept, becaus ethey can become wetalnds in a few decades.\n\ndat_full &lt;- dat\n\nnrow(dat_full[dat_full$rHav == 100,])\nnrow(dat_full[dat_full$rFerskvann == 100,])\n  \ndat &lt;- dat |&gt;\n  dplyr::filter(rHav &lt; 100 & rFerskvann &lt;100)\n\nnrow(dat_full)-nrow(dat) # 529464 Correct\nnrow(dat) #1350918\nnrow(dat)/4 # 337 729.5\n\n\nanyDuplicated(dat$ssbid) # no duplicates\n\nNow we are down to 1 644 092 units. If we divide by 4 to get km2, we get a little higher than the true value for the Norwegian mainland, which is as expected since we include some coastal waters.\nWe also need a primary key, and therefore I add a unique identifier.\n\nids &lt;- uuid::UUIDgenerate(n = nrow(dat))\nanyDuplicated(ids)\ndat &lt;- dat |&gt;\n  mutate(\n    vaatmark_id = ids\n  )\n\n\ndat &lt;- dat |&gt;\n  select(\n    ssbid,\n    vaatmark_id,\n    ost,\n    nord,\n    centroid_x = CENTROID_X,\n    centroid_y = CENTROID_Y,\n    komm2016 = Komm2016,\n    fylk2016 = Fylk2016,\n    r_ferskvann = rFerskvann,\n    r_hav = rHav,\n    r_sno_isbre = rSnoIsbre,\n    r_bebygd_samf = rBebygdSamf,\n    mean_slope = meanSlope,\n    ssbid_1000 = SSBid_1000,\n    sone_kode = Sone_kode,\n    seksjon_kode = Seksjon_kode,\n    abi = ABI)\n\n\n4.2.1 Define table properties\nWe will name the table samplingframe_vaatmark_2025.\n\nq1 &lt;- \"create table sampling_frames.samplingframe_vaatmark_2025 (\nvaatmark_id character varying(50) primary key,\nssbid character varying(50),\nost integer,\nnord integer,\ncentroid_x numeric(24,0),\ncentroid_y numeric(24,0),\nkomm2016 character varying(5),\nfylk2016 character varying(5),\nr_ferskvann numeric(10,5),\nr_hav numeric(10,5),\nr_sno_isbre numeric(10,5),\nr_bebygd_samf numeric(10,5),\nmean_slope numeric(10,5),\nssbid_1000 numeric(15,0),\nsone_kode character varying(7),\nseksjon_kode character varying(7),\nabi integer,\nCONSTRAINT fk_ssb_500\n      FOREIGN KEY (ssbid)\n        REFERENCES ssb_grids.ssb_500 (ssbid)\n);\"\n\n# indices makes the database work faster. It should be added to all tables that are looked up frequently\nq2 &lt;- \"create index on sampling_frames.samplingframe_vaatmark_2025 using btree(ssbid);\"\nq3 &lt;- \"create index on sampling_frames.samplingframe_vaatmark_2025 using btree(vaatmark_id);\"\n\n\n# sending the queries:\ndbSendStatement(con, q1)\ndbSendStatement(con, q2)\ndbSendStatement(con, q3)\n\n\n4.2.2 Write to db\nThen we write data to the samplingframe_havstrand_2024 table.\n\nwrite_sf(dat, dsn = con,\n         layer = Id(schema = \"sampling_frames\", table = \"samplingframe_vaatmark_2025\"), \n         append = T)",
+    "crumbs": [
+      "Write tabular data to the database",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Sampling frames</span>"
+    ]
+  },
+  {
+    "objectID": "020_samplingFrames.html#ano-havstrand",
+    "href": "020_samplingFrames.html#ano-havstrand",
+    "title": "\n4  Sampling frames\n",
+    "section": "\n4.3 ANO Havstrand",
+    "text": "4.3 ANO Havstrand\nFor ANO Havstrand (ANO Coast), SSB500 has been masked to only include grid cells that overlap with the Norwegian coastline. The script for doing that is written in python ad can be found here: /data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/\nRead data into R:\n\ncoast_path &lt;- \"/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/CoastalSampling3.gdb\"\n\nsf::st_layers(coast_path)\n\nDriver: OpenFileGDB \nAvailable layers:\n                layer_name     geometry_type features fields\n1            fcNorgeKyst_l Multi Line String   101331      2\n2 fcKystline_500mSegmenter Multi Line String   240861      1\n3              Samples62_5       Multi Point   769342      2\n4              Samples83_3       Multi Point   555958      2\n5               Samples125       Multi Point   350676      2\n6            SSB500_Coast4     Multi Polygon   121920      6\n7        Hexagon62_5_Coast     Multi Polygon  2729978      3\n8        Hexagon83_3_Coast     Multi Polygon  1622139      3\n9         Hexagon125_Coast     Multi Polygon   796190      3\n               crs_name\n1 ETRS89 / UTM zone 33N\n2 ETRS89 / UTM zone 33N\n3 ETRS89 / UTM zone 33N\n4 ETRS89 / UTM zone 33N\n5 ETRS89 / UTM zone 33N\n6 ETRS89 / UTM zone 33N\n7 WGS 84 / UTM zone 33N\n8 WGS 84 / UTM zone 33N\n9 WGS 84 / UTM zone 33N\n\n\nSSB500_Coast4 contains the SSB500 grid cells that overlap with the coastline.\n\ncoastSSB &lt;- read_sf(coast_path, layer = \"SSB500_Coast4\")\n\nThe SSBid will be the foreign key, linking to ssb_500. We also need a primary key, and therefore I add a unique identifier.\n\nids &lt;- UUIDgenerate(n = nrow(coastSSB))\nanyDuplicated(ids)\ncoastSSB &lt;- coastSSB |&gt;\n  select(ssbid = SSBid)|&gt;\n  mutate(havstrand_id = ids)\n\nWe don’t need the geometry\n\ncoastSSB &lt;- as_tibble(coastSSB) |&gt;\n  select(ssbid, havstrand_id)\n\n\n4.3.1 Define table properties\nWe will name the table samplingframe_havstrand_2024.\n\nq1 &lt;- \"create table sampling_frames.samplingframe_havstrand_2024 (\nhavstrand_id character varying(50) primary key,\nssbid character varying(50),\nCONSTRAINT fk_ssb_500\n      FOREIGN KEY (ssbid)\n        REFERENCES ssb_grids.ssb_500 (ssbid)\n);\"\n\n# indices makes the database work faster. It should be added to all tables that are looked up frequently\nq2 &lt;- \"create index on sampling_frames.samplingframe_havstrand_2024 using btree(ssbid);\"\nq3 &lt;- \"create index on sampling_frames.samplingframe_havstrand_2024 using btree(havstrand_id);\"\n\n\n# sending the queries:\ndbSendStatement(con, q1)\ndbSendStatement(con, q2)\ndbSendStatement(con, q3)\n\n\n4.3.2 Write to db\nThen we write data to the samplingframe_havstrand_2024 table.\n\nwrite_sf(coastSSB, dsn = con,\n         layer = Id(schema = \"sampling_frames\", table = \"samplingframe_havstrand_2024\"), \n         append = T)",
+    "crumbs": [
+      "Write tabular data to the database",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Sampling frames</span>"
+    ]
+  },
+  {
+    "objectID": "021_readFromDb.html",
+    "href": "021_readFromDb.html",
+    "title": "\n5  Read data from the database\n",
+    "section": "",
+    "text": "Now that we have added data to the database, we can also read it back.\n\ncoast_sample &lt;- dplyr::tbl(con, dbplyr::in_schema(\"sampling_frames\", \"samplingframe_havstrand_2024\"))\ncoast_sample\n\n# Source:   SQL [?? x 2]\n# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]\n   havstrand_id                         ssbid         \n   &lt;chr&gt;                                &lt;chr&gt;         \n 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500\n 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000\n 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500\n 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000\n 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500\n 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500\n 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000\n 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000\n 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000\n10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500\n# ℹ more rows\n\n\nThis data only exists remotely still. We need to use collect to bring it down to our local machine. At the same time we can use dplyr pipelines to filter the data.\n\ncoast_sample |&gt;\n  dplyr::mutate(id = row_number()) |&gt;\n  dplyr::slice_min(n = 8, order_by = id) |&gt;\n  dplyr::collect()\n\n# A tibble: 8 × 3\n  havstrand_id                         ssbid               id\n  &lt;chr&gt;                                &lt;chr&gt;          &lt;int64&gt;\n1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500       1\n2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000       2\n3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500       3\n4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000       4\n5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500       5\n6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500       6\n7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000       7\n8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000       8\n\n\nWe can also get the geometries, which are stored in the foreign table. To do this we can use the dm package.\nWe first create a dm object from the connection object. Then we can view data easily.\n\ndm &lt;- dm::dm_from_con(con,\n  table_names = c(\n    \"ssb_500\",\n    \"samplingframe_havstrand_2024\",\n    \"samplingframe_vaatmark_2025\"\n  ),\n  learn_keys = T\n)\ndm\n\n── Table source ────────────────────────────────────────────────────────────────\nsrc:  postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]\n── Metadata ────────────────────────────────────────────────────────────────────\nTables: `samplingframe_havstrand_2024`, `samplingframe_vaatmark_2025`, `ssb_500`\nColumns: 21\nPrimary keys: 3\nForeign keys: 2\n\n\nDM learns the relationships between tables by reading the constraints. First I can check that the amount of constraints is good.\n\ndm_get_all_fks(dm)\n\n\ndm |&gt;\n  dm::dm_set_colors(\n    darkgreen = samplingframe_havstrand_2024, \n    darkblue = ssb_500) |&gt;\n  dm::dm_draw() \n\n\nThen we can read the data back, including the geometries from the parent table.\n\ndm |&gt;\n  dm::dm_flatten_to_tbl(samplingframe_havstrand_2024,\n                    .recursive = TRUE)\n\n# Source:   SQL [?? x 3]\n# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]\n   havstrand_id                         ssbid          geom                     \n   &lt;chr&gt;                                &lt;chr&gt;          &lt;pq_gmtry&gt;               \n 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500 0103000020E9640000010000…\n 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000 0103000020E9640000010000…\n 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500 0103000020E9640000010000…\n 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000 0103000020E9640000010000…\n 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500 0103000020E9640000010000…\n 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500 0103000020E9640000010000…\n 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000 0103000020E9640000010000…\n 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000 0103000020E9640000010000…\n 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000 0103000020E9640000010000…\n10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500 0103000020E9640000010000…\n# ℹ more rows\n\n\nThe geometry column is a bit weird though. Not sure what is happening there, but see this.",
+    "crumbs": [
+      "Read data from database",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Read data from the database</span>"
     ]
   }
 ]

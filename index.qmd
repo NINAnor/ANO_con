@@ -22,7 +22,7 @@ This with admin rights are
 - Jens Åström (jens.astrom@nina.no)
 
 
-The database contains the raw data needed to make balansed spatial samples of monitoring localities for ANO-modules.
+The database contains the raw data needed to make balanced spatial samples of monitoring localities for ANO-modules.
 
 
 
