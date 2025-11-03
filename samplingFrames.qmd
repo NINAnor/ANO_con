@@ -1,0 +1,176 @@
+# Sampling frames
+
+
+
+We will have different sampling frames, also called the _universe_, for the different ANO-modules.
+
+## Setup schema
+This part sets up the schema, and is only done ones.
+
+```{r}
+schema_ur <- "CREATE SCHEMA sampling_frames"
+dbSendQuery(con, schema_ur) 
+```
+Write queries to grant read only access to all.
+```{r}
+priv <- "ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro"
+priv2 <- "ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw"
+priv3 <- "ALTER DEFAULT PRIVILEGES IN SCHEMA sampling_frames GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin"
+priv4 <- "GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_admin"
+priv5 <- "GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_rw"
+priv6 <- "GRANT USAGE ON SCHEMA sampling_frames  TO ag_pgsql_ano_moduler_ro"
+
+dbSendStatement(con, priv)
+dbSendStatement(con, priv2)
+dbSendStatement(con, priv3)
+dbSendStatement(con, priv4)
+dbSendStatement(con, priv5)
+dbSendStatement(con, priv6)
+```
+
+
+## ANO våtmark
+Here we upload the dataframe with SSB-id's that make up the sampling frame for ANO våtmark (wetlands). The dataframe also contain auxillary variables used for balansing and stratifying the sampling. All the datasets and code (python) to create this dataframe if or will be uploaded to the database as well.
+
+Read data into R:
+
+```{r}
+library(readr)
+dat <- read_delim("/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/ruter500m_Norge.csv", 
+    delim = ";", escape_double = FALSE,  trim_ws = TRUE)
+
+# removing some columns
+dat <- dat |>
+  select(-Join_Count,
+         -TARGET_FID,
+         -Shape_Leng,
+         -Shape_Length,
+         -Shape_Area)
+
+# There are some columns that should be numeric, but are read initial as characters with leading apostrophes and the wrong decimal sign.
+toConvert <- c(
+  "rFerskvann",
+  "rHav",
+  "rSnoIsbre",
+  "rBebygdSamf",
+  "minSlope",
+  "meanSlope",
+  "maxSlope"
+)
+
+dat <- dat |>
+  mutate(across(toConvert, ~ gsub("^'", "", .))) |>
+  mutate(across(toConvert, ~ gsub(",", ".", .))) |>
+  mutate(across(toConvert, as.numeric))
+
+```
+
+We start with `r nrow(dat)` sampling units, but 
+we want to exclude sampling units with 100% water (ocean or freshwater).
+There are 231083 units of marine waters and 
+5207 with freshwater. 
+We could perhaps also exclude units with 100% build up area, but I'm at this moment not sure
+we can be fully sure there is no wetland in those units.
+Units with snow and ice are kept, becaus ethey can become wetalnds in a few decades.
+
+```{r}
+# nrow(dat[dat$rHav == 100,])
+# nrow(dat[dat$rFerskvann == 100,])
+
+ dat2 <- dat |>
+  dplyr::filter(rHav < 100 & rFerskvann <100)
+
+# nrow(dat)-nrow(dat2) # 236290. Correct
+```
+
+This remove `r nrow`
+
+We also need a primary key, and therefore I add a unique identifier.
+
+```{r}
+ids <- UUIDgenerate(n = nrow(coastSSB))
+anyDuplicated(ids)
+coastSSB <- coastSSB |>
+  select(ssbid = SSBid)|>
+  mutate(havstrand_id = ids)
+
+```
+
+
+
+## ANO Havstrand
+
+For ANO Havstrand (ANO Coast), SSB500 has been masked to only include grid cells that overlap with the Norwegian coastline.
+The script for doing that is written in python ad can be found here: */data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/*
+
+Read data into R:
+
+```{r}
+#| eval: true
+coast_path <- "/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/CoastalSampling3.gdb"
+
+sf::st_layers(coast_path)
+```
+
+SSB500_Coast4 contains the SSB500 grid cells that overlap with the coastline.
+
+```{r}
+coastSSB <- read_sf(coast_path, layer = "SSB500_Coast4")
+```
+
+The SSBid will be the foreign key, linking to ssb_500.
+We also need a primary key, and therefore I add a unique identifier.
+
+```{r}
+ids <- UUIDgenerate(n = nrow(coastSSB))
+anyDuplicated(ids)
+coastSSB <- coastSSB |>
+  select(ssbid = SSBid)|>
+  mutate(havstrand_id = ids)
+
+```
+
+
+
+We don't need the geometry
+```{r}
+coastSSB <- as_tibble(coastSSB) |>
+  select(ssbid, havstrand_id)
+
+```
+
+### Define table properties
+We will name the table *samplingframe_havstrand_2024*.
+
+```{r}
+q1 <- "create table sampling_frames.samplingframe_havstrand_2024 (
+havstrand_id character varying(50) primary key,
+ssbid character varying(50),
+CONSTRAINT fk_ssb_500
+      FOREIGN KEY (ssbid)
+        REFERENCES ssb_grids.ssb_500 (ssbid)
+);"
+
+# indices makes the database work faster. It should be added to all tables that are looked up frequently
+q2 <- "create index on sampling_frames.samplingframe_havstrand_2024 using btree(ssbid);"
+q3 <- "create index on sampling_frames.samplingframe_havstrand_2024 using btree(havstrand_id);"
+```
+
+```{r}
+# sending the queries:
+dbSendStatement(con, q1)
+dbSendStatement(con, q2)
+dbSendStatement(con, q3)
+```
+
+
+### Write to db
+
+Then we write data to the samplingframe_havstrand_2024 table.
+```{r}
+write_sf(coastSSB, dsn = con,
+         layer = Id(schema = "sampling_frames", table = "samplingframe_havstrand_2024"), 
+         append = T)
+```
+
+
