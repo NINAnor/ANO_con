@@ -5,7 +5,7 @@
 <meta name="generator" content="quarto-1.4.555">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="description" content="This website document how to read and write data from the postgreSQL database containing the spatial data for ANO-moduler.">
-<title>Working with the ANO-moduler database - 4&nbsp; Read data from the database</title>
+<title>Working with the ANO-moduler database - 5&nbsp; Read data from the database</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -61,7 +61,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./samplingFrames.html" rel="prev">
+<link href="./020_samplingFrames.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -105,7 +105,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./readFromDb.html">Read data from database</a></li><li class="breadcrumb-item"><a href="./readFromDb.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Read data from the database</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./021_readFromDb.html">Read data from database</a></li><li class="breadcrumb-item"><a href="./021_readFromDb.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Read data from the database</span></a></li></ol></nav>
         <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -160,7 +160,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./connecting.html" class="sidebar-item-text sidebar-link">
+  <a href="./001_connecting.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Connecting to the database</span></span></a>
   </div>
 </li>
@@ -175,8 +175,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./SSB500.html" class="sidebar-item-text sidebar-link">
+  <a href="./010_SSB500.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">SSB500</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./011_bioclimatic_regions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bioclimatic regions</span></span></a>
   </div>
 </li>
       </ul>
@@ -184,7 +190,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
- <span class="menu-text">Write tabular dat Sampling frames</span></a>
+ <span class="menu-text">Write tabular data to the database</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -192,8 +198,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./samplingFrames.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling frame for the Havstrand module</span></span></a>
+  <a href="./020_samplingFrames.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></span></a>
   </div>
 </li>
       </ul>
@@ -209,8 +215,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./readFromDb.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Read data from the database</span></span></a>
+  <a href="./021_readFromDb.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Read data from the database</span></span></a>
   </div>
 </li>
       </ul>
@@ -223,9 +229,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./readFromDb.html">Read data from database</a></li><li class="breadcrumb-item"><a href="./readFromDb.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Read data from the database</span></a></li></ol></nav><div class="quarto-title">
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./021_readFromDb.html">Read data from database</a></li><li class="breadcrumb-item"><a href="./021_readFromDb.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Read data from the database</span></a></li></ol></nav><div class="quarto-title">
 <h1 class="title">
-<span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Read data from the database</span>
+<span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Read data from the database</span>
 </h1>
 </div>
 
@@ -286,34 +292,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>We first create a dm object from the connection object. Then we can view data easily.</p>
 <div class="cell">
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">&lt;-</span> <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_from_con.html">dm_from_con</a></span><span class="op">(</span><span class="va">con</span>,</span>
-<span>  table_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"ssb_500"</span>,</span>
-<span>                  <span class="st">"samplingframe_havstrand_2024"</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Keys queried successfully.
-ℹ Use `learn_keys = TRUE` to mute this message.</code></pre>
-</div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span><span class="op">$</span><span class="va">samplingframe_havstrand_2024</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span>  table_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"ssb_500"</span>,</span>
+<span>    <span class="st">"samplingframe_havstrand_2024"</span>,</span>
+<span>    <span class="st">"samplingframe_vaatmark_2025"</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  learn_keys <span class="op">=</span> <span class="cn">T</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">dm</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># Source:   table&lt;"ano_moduler"."sampling_frames"."samplingframe_havstrand_2024"&gt; [?? x 2]
-# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]
-   havstrand_id                         ssbid         
-   &lt;chr&gt;                                &lt;chr&gt;         
- 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500
- 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000
- 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500
- 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000
- 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500
- 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500
- 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000
- 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000
- 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000
-10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500
-# ℹ more rows</code></pre>
+<pre><code>── Table source ────────────────────────────────────────────────────────────────
+src:  postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]
+── Metadata ────────────────────────────────────────────────────────────────────
+Tables: `samplingframe_havstrand_2024`, `samplingframe_vaatmark_2025`, `ssb_500`
+Columns: 21
+Primary keys: 3
+Foreign keys: 2</code></pre>
 </div>
 </div>
-<p>DM learns the relationshios between tables by reading the constraints:</p>
+<p>DM learns the relationships between tables by reading the constraints. First I can check that the amount of constraints is good.</p>
 <div class="cell">
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">dm_get_all_fks</span><span class="op">(</span><span class="va">dm</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_set_colors.html">dm_set_colors</a></span><span class="op">(</span></span>
 <span>    darkgreen <span class="op">=</span> <span class="va">samplingframe_havstrand_2024</span>, </span>
 <span>    darkblue <span class="op">=</span> <span class="va">ssb_500</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -322,7 +324,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><img src="img/screen_db.png" class="img-fluid"></p>
 <p>Then we can read the data back, including the geometries from the parent table.</p>
 <div class="cell">
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_flatten_to_tbl.html">dm_flatten_to_tbl</a></span><span class="op">(</span><span class="va">samplingframe_havstrand_2024</span>,</span>
 <span>                    .recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -756,8 +758,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
-      <a href="./samplingFrames.html" class="pagination-link" aria-label="Sampling frame for the Havstrand module">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Sampling frame for the Havstrand module</span></span>
+      <a href="./020_samplingFrames.html" class="pagination-link" aria-label="Sampling frames">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Sampling frames</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
@@ -767,4 +769,4 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/readFromDb.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/021_readFromDb.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>

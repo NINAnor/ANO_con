@@ -2,7 +2,7 @@
 
 Fisrt you need to save your personal windows password to your local machine..
 Don't write it in your code.
-You can store it in your personal root folder like this (just change the 'secretPassword' to you own):
+If you're on linux, you can store it in your personal root folder like this (just change the 'secretPassword' to you own):
 
 ```{r setup2}
 #| include: false
