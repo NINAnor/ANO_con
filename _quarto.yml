@@ -25,6 +25,7 @@ book:
       chapters: 
         - 021_readFromDb.qmd
     - part: "Spatial sampling"
+      chapters:
         - 030_simulation.qmd
     
 format:

@@ -9,7 +9,20 @@ especially from [here](https://github.com/DickBrus/SpatialSamplingwithR/blob/355
 
 # Create dummy dataset
 
+```{r setipSim}
+#| include: false
+#| message: false
+#| eval: true
+library(tidyverse)
+library(ggpubr)
+library(DT)
+library(knitr)
+library(BalancedSampling)
+library(sampling)
+```
+
 ```{r dummyData}
+#| eval: true
 # Create two variables with 20 values
 s1 <- s2 <- 1:20 - 0.5
 
@@ -58,8 +71,8 @@ mypop <- mypop |>
   mutate(res1 = rnorm(n = n(), mean = res1_mean, sd = 1),
          res2 = rnorm(n = n(), mean = res2_mean, sd = 3),
   # add dummy auxiliary variables
-         aux1 = seq(0.5,5.5, length.out = n()),
-         aux2 = rpois(n = n(), lambda = 1)) |>
+         aux1 = seq(0.5,5.5, length.out = n())^2,
+         aux2 = rgamma(n = n(), shape = .4)) |>
   ungroup() |>
   # round values
   mutate(across(where(is.numeric), \(x) round(x, 3))) |>
@@ -68,16 +81,19 @@ mypop <- mypop |>
     Northing > 5 ~ 1,
     .default = 0.2
   )) |>
-  select(-res1_mean, -res2_mean)
+  dplyr::select(-res1_mean, -res2_mean)
 ```
 
 ```{r tbl-dummyData}
+#| eval: true
 #| tbl-cap: 'Dummy data'
 DT::datatable(mypop)
 
 ```
 
-```{r}
+```{r fig-hist}
+#| eval: true
+#| fig-cap: 'Histogram of response and auxilary variables in the dummy dataset.'
 mypop |>
   pivot_longer(cols = starts_with(c("res", "aux"))) |>
   ggplot()+
@@ -91,6 +107,7 @@ mypop |>
 
 ```{r tbl-dummySummary}
 #| tbl-cap: 'Means for each strata'
+#| eval: true
 mypop |>
   pivot_longer(cols = starts_with(c("res", "aux")),
                names_to = "variable", values_to = "values") |>
@@ -101,6 +118,7 @@ mypop |>
 ```
 
 ```{r fig-fiveMaps}
+#| eval: true
 #| fig-cap: 'Spatial distribution of the strata, and the four variables in the dummy dataset.'
 
 ggpubr::ggarrange(
@@ -117,9 +135,9 @@ ggpubr::ggarrange(
     coord_fixed(),
   
   ggplot(data = mypop) +
-    geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(aux2)), 
+    geom_tile(mapping = aes(x = Easting, y = Northing, fill = aux2), 
               width = 1, height = 1, size = 0.5, colour = "white") +
-    scale_fill_viridis_d(name = "aux2") +
+    scale_fill_viridis_c(name = "aux2") +
     coord_fixed(),
   
   ggplot(data = mypop) +
@@ -137,12 +155,13 @@ ggpubr::ggarrange(
 )
 ```
 
-## Stratified simple random sample
+# Stratified simple random sample
 
 Then I use the cube method in to select a sample balanced on the strata, essentially creating a stratified simple random sample.
 Here I use the `sampling` package. This is just a simple first test.
 
 ```{r tbl-modelMatrix}
+#| eval: true
 #| tbl-cap: 'Model matrix'
 # Create model matrix by expanding the strata column, explicitly assigning both presences and absences to each row.
 X <- model.matrix(~ stratum - 1, mypop)
@@ -150,6 +169,7 @@ DT::datatable(X)
 ```
 
 ```{r fig-bal1}
+#| eval: true
 #| fig-cap: 'Sample balanced on a categorical variable (strata). This is equivalent to a stratified simple random sample.'
 set.seed(314)
 sample_ind <- sampling::samplecube(X = X, pik = mypop$pi_h, comment = TRUE, method = 1)
@@ -172,17 +192,18 @@ In `BalancedSampling` the equivalent function is called `cube()`, or `cubestrati
 The latter allow you to add the strata as a vector of size N, and it will be automatically added to the probabilities of each unit in the matrix.
 
 ```{r fig-ssrs}
-#| fig-cap: 'Histograms comparing the population distribution (blue, uniform distribution) with the sample from a stratified simple random sample when n = 10.'
+#| eval: true
+#| fig-cap: 'Histograms comparing the population distribution (blue, gamma distribution) with the sample from a stratified simple random sample when n = 10.'
 
 mypop |>
   ggplot()+
-  geom_histogram(aes(x = aux1, y = after_stat(density)),
+  geom_histogram(aes(x = aux2, y = after_stat(density)),
                  binwidth = 1,
                  fill = "blue",
                  colour = "black",
                  alpha = .5)+
   geom_histogram(data = mysample,
-                 aes(x = aux1, y = after_stat(density)),
+                 aes(x = aux2, y = after_stat(density)),
                  binwidth = 1,
                  fill = "red",
                  colour = "black",
@@ -191,11 +212,108 @@ mypop |>
              scales = "free_x")
 ```
 
-## Stratified and balanced sample
+# Balanced sample
 
 Now I want to balance the sample on two auxiliary variables, as well as on the strata.
 
+```{r tbl-modelMatrix2}
+#| eval: true
+#| tbl-cap: 'Model matrix #2'
+# Create model matrix 
+X2 <- model.matrix(~ stratum + aux1 + aux2 - 1, mypop)
+DT::datatable(X2)
+```
+
+```{r balanced}
+#| eval: true
+#| fig-cap: 'Sample baalnced on two auxilary variables, as well as the categorical strata.'
+set.seed(3141)
+sample_ind2 <- sampling::samplecube(X = X2, pik = mypop$pi_h, comment = TRUE, method = 1)
+mysample2 <- mypop[sample_ind2 > (1 - eps), ]
+
+ggplot(data = mypop) +
+  geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(stratum)), width = 1, height = 1, size = 0.5, colour = "white") +
+  geom_tile(data = mysample2, mapping = aes(x = Easting, y = Northing), fill = NA, width = 1, height = 1, linewidth = 0.7, colour = "black") +
+  scale_fill_viridis_d(name = "Stratum") +
+  coord_fixed()
+
+```
+
+
+```{r fig-ssrs2}
+#| eval: true
+#| fig-cap: 'Histograms comparing the population distribution (blue, gamma distribution) with the sample from a stratified simple random sample when n = 10.'
+
+mypop |>
+  ggplot()+
+  geom_histogram(aes(x = aux2, y = after_stat(density)),
+                 binwidth = 1,
+                 fill = "blue",
+                 colour = "black",
+                 alpha = .5)+
+  geom_histogram(data = mysample2,
+                 aes(x = aux2, y = after_stat(density)),
+                 binwidth = 1,
+                 fill = "red",
+                 colour = "black",
+                 alpha = .5)+
+  facet_grid(.~stratum,
+             scales = "free_x")
+```
+
+It appears from comparing @fig-ssrs with @fig-ssrs2 that the latter has a better overlap with the population distribution, altough with n = 10 this is subject to a lot of chance still.
+
+Now I just want to check if it makes a difference if I scale the auxiliary variables
+
+```{r}
+#| eval: true
+mypop <- mypop |>
+  mutate(aux1_s = scale(aux1),
+         aux2_s = scale(aux2))
+X3 <- model.matrix(~ stratum + aux1_s + aux2_s - 1, mypop)
+set.seed(3142)
+
+sample_ind3 <- sampling::samplecube(X = X3, pik = mypop$pi_h, comment = TRUE, method = 1)
+mysample3 <- mypop[sample_ind3 > (1 - eps), ]
+
+```
 
 
 
+# PPS
 
+Next i want to introduce sampling with ppr.
+
+```{r}
+#| eval: true
+mypop <- mypop |>
+  mutate(pi_pps = pi_h * area)
+pi_pps <- mypop |>
+  mutate(pi_pps = pi_h * area) |>
+  pull(pi_pps)
+
+set.seed(3143)
+sample_ind4 <- sampling::samplecube(X = X2, pik = pi_pps, comment = TRUE, method = 1)
+mysample4 <- mypop[sample_ind4 > (1 - eps), ]
+```
+
+
+```{r tbl-means}
+#| eval: true
+#| tbl-cap: 'Comparing the means of four sampling methods against the true population mean. The variable is exponentially associated with latitude and area.'
+mypop |>
+  summarise(
+    True_mean = mean(aux1),
+    SRSS     = mean(aux1[sample_ind == 1]),
+    Balanced      = mean(aux1[sample_ind2 == 1]),
+    Balanced_and_scaled    = mean(aux1[sample_ind3 == 1]),
+    PPS  = mean(aux1[sample_ind4 == 1])
+    ) |>
+  t() |>
+  kable()
+```
+
+The stratified and balanced sample, without scaling, has the sample mean clostst to the true mean. The pps shifts the mean upwards, as expected, because we under-sample the low latitudes, but this would be corrected in the HT-estimator. Ideally I would do another simulation here and calculate the means 1000 times and get the distribution of means to compare between the methods, but I don't have time now.
+
+
+# Balanced and well-spread
