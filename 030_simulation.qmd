@@ -19,15 +19,16 @@ library(DT)
 library(knitr)
 library(BalancedSampling)
 library(sampling)
+library(mase)
 ```
 
 ```{r dummyData}
 #| eval: true
-# Create two variables with 20 values
-s1 <- s2 <- 1:20 - 0.5
+# Create two variables with 60 values
+s1 <- s2 <- 1:60 - 0.5
 
-# set the samle size
-n = 10
+# set the per strata sample size
+n = 5
 
 # expand to get every combination
 # These will act as coordinates for our dummy data 
@@ -39,7 +40,8 @@ names(mypop) <- c("Easting", "Northing")
 # add column 'stratum'
 # Strata '0' for when s1 is between -Inf and 4; 
 # Strata '1' for when s1 is between 4 and 6; etc.
-mypop$stratum <- as.factor(findInterval(mypop$Easting, c(4, 6, 14)))
+#mypop$stratum <- as.factor(findInterval(mypop$Easting, c(4, 6, 14)))
+mypop$stratum <- as.factor(findInterval(mypop$Easting, c(12, 18, 42)))
 
 # give the strata names as capital letters
 levels(mypop$stratum) <- LETTERS[1:4]
@@ -78,8 +80,8 @@ mypop <- mypop |>
   mutate(across(where(is.numeric), \(x) round(x, 3))) |>
   # add a column for area that can be used for pps
   mutate(area = case_when(
-    Northing > 5 ~ 1,
-    .default = 0.2
+    Northing > 30 ~ 1,
+    .default = 0.1
   )) |>
   dplyr::select(-res1_mean, -res2_mean)
 ```
@@ -94,26 +96,54 @@ DT::datatable(mypop)
 ```{r fig-hist}
 #| eval: true
 #| fig-cap: 'Histogram of response and auxilary variables in the dummy dataset.'
+#| message: false
 mypop |>
   pivot_longer(cols = starts_with(c("res", "aux"))) |>
-  ggplot()+
+  ggplot() +
   geom_histogram(aes(value),
-                 bins = 50)+
-  facet_grid(rows = vars(stratum), cols = vars(name),
-             scales = "free")+
-  theme_bw(
-  )
+    bins = 50
+  ) +
+  facet_grid(
+    rows = vars(stratum), cols = vars(name),
+    scales = "free"
+  ) +
+  theme_bw()
+```
+
+```{r tbl-dummySummaryAll}
+#| tbl-cap: 'Population seans. The aux variables are not correlated to the strata, but the res (response) variables do differ between strata.'
+#| eval: true
+tableOfMeans <- mypop |>
+  pivot_longer(
+    cols = starts_with(c("res", "aux", "North", "East")),
+    names_to = "variable", values_to = "values"
+  ) |>
+  group_by(variable) |>
+  summarise("Population mean" = round(mean(values), 2),
+            "Population variance" = round(var(values), 2)) |>
+  pivot_longer(cols = ends_with("mean")) |>
+  select(Variable = variable, 
+         Sample = name,
+         mean = value, 
+         variance = "Population variance") |>
+  mutate(Sample = "Population")
+
+tableOfMeans |>
+  kable()
+
 ```
 
 ```{r tbl-dummySummary}
-#| tbl-cap: 'Means for each strata'
+#| tbl-cap: 'Means for each strata. The aux variables are not correlated to the strata, but the res (response) variables do differ between strata.'
 #| eval: true
 mypop |>
-  pivot_longer(cols = starts_with(c("res", "aux")),
-               names_to = "variable", values_to = "values") |>
+  pivot_longer(
+    cols = starts_with(c("res", "aux")),
+    names_to = "variable", values_to = "values"
+  ) |>
   group_by(variable, stratum) |>
-  summarise(mean = mean(values)) |>
-  DT::datatable()
+  summarise(mean = round(mean(values), 2)) |>
+  kable()
 
 ```
 
@@ -121,36 +151,43 @@ mypop |>
 #| eval: true
 #| fig-cap: 'Spatial distribution of the strata, and the four variables in the dummy dataset.'
 
+lw <- .1
 ggpubr::ggarrange(
   ggplot(data = mypop) +
     geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(stratum)), 
-              width = 1, height = 1, size = 0.5, colour = "white") +
+              width = 1, height = 1, linewidth = lw, colour = "white") +
     scale_fill_viridis_d(name = "Stratum") +
     coord_fixed(),
   
   ggplot(data = mypop) +
     geom_tile(mapping = aes(x = Easting, y = Northing, fill = aux1), 
-              width = 1, height = 1, size = 0.5, colour = "white") +
+              width = 1, height = 1, linewidth = lw, colour = "white") +
     scale_fill_viridis_c(name = "aux1") +
     coord_fixed(),
   
   ggplot(data = mypop) +
     geom_tile(mapping = aes(x = Easting, y = Northing, fill = aux2), 
-              width = 1, height = 1, size = 0.5, colour = "white") +
+              width = 1, height = 1, linewidth = lw, colour = "white") +
     scale_fill_viridis_c(name = "aux2") +
     coord_fixed(),
   
   ggplot(data = mypop) +
     geom_tile(mapping = aes(x = Easting, y = Northing, fill = res1), 
-              width = 1, height = 1, size = 0.5, colour = "white") +
+              width = 1, height = 1, linewidth = lw, colour = "white") +
     scale_fill_viridis_c(name = "res1") +
     coord_fixed(),
   
   
   ggplot(data = mypop) +
     geom_tile(mapping = aes(x = Easting, y = Northing, fill = res2), 
-              width = 1, height = 1, size = 0.5, colour = "white") +
+              width = 1, height = 1, linewidth = lw, colour = "white") +
     scale_fill_viridis_c(name = "res2") +
+    coord_fixed(),
+  
+  ggplot(data = mypop) +
+    geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(area)), 
+              width = 1, height = 1, linewidth = lw, colour = "white") +
+    scale_fill_viridis_d(name = "area") +
     coord_fixed()
 )
 ```
@@ -187,13 +224,39 @@ In @fig-bal1, _n_= `r n` for each strata, but this is not explicitly defined.
 The total _n_ across all strata is defined through the sum of the inclusion probability vector, which is `r sum(mypop$pi_h)`
 And then the n for each strata is a consequence of the number of units in each, and the _pi_ for each unit.
 
-
 In `BalancedSampling` the equivalent function is called `cube()`, or `cubestratified()`.
 The latter allow you to add the strata as a vector of size N, and it will be automatically added to the probabilities of each unit in the matrix.
 
+
+```{r HTestimatpr}
+#| eval: true
+#| include: false
+
+vars <- c("Easting", "Northing", "aux1", "aux2", "res1", "res2")
+
+ht_results <- lapply(vars, function(v) {
+  y <- mysample[[v]]
+  res <- mase::horvitzThompson(y = y, pi = mysample$pi_h, var_est = TRUE)
+  data.frame(
+    SRSS = round(res$pop_mean, 2),
+    SRSS_var = round(res$pop_mean_var,2)
+  )
+}) %>%
+  bind_rows()
+
+tableOfMeans <- tableOfMeans |>
+  cbind(ht_results) |>
+  mutate(SRSS =  mean/SRSS)
+
+tableOfMeans
+# Later, drop the first four rows and pivot_longer for SRSS, and wider or 'variable', so that I can colour the columnn
+
+```
+
+
 ```{r fig-ssrs}
 #| eval: true
-#| fig-cap: 'Histograms comparing the population distribution (blue, gamma distribution) with the sample from a stratified simple random sample when n = 10.'
+#| fig-cap: 'Histograms comparing the population distribution (blue, gamma distribution) with the sample from a stratified simple random sample when n = 5.'
 
 mypop |>
   ggplot()+
@@ -226,7 +289,7 @@ DT::datatable(X2)
 
 ```{r balanced}
 #| eval: true
-#| fig-cap: 'Sample baalnced on two auxilary variables, as well as the categorical strata.'
+#| fig-cap: 'Sample balanced on two auxilary variables, as well as the categorical strata.'
 set.seed(3141)
 sample_ind2 <- sampling::samplecube(X = X2, pik = mypop$pi_h, comment = TRUE, method = 1)
 mysample2 <- mypop[sample_ind2 > (1 - eps), ]
@@ -239,6 +302,25 @@ ggplot(data = mypop) +
 
 ```
 
+```{r HTestimator2}
+#| eval: true
+#| include: false
+
+ht_results <- lapply(vars, function(v) {
+  y <- mysample2[[v]]
+  res <- mase::horvitzThompson(y = y, pi = mysample2$pi_h, var_est = TRUE)
+  data.frame(
+    Balanced = round(res$pop_mean, 2),
+    Balanced_var = round(res$pop_mean_var,2)
+  )
+}) %>%
+  bind_rows()
+
+tableOfMeans <- tableOfMeans |>
+  cbind(ht_results) |>
+  mutate(Balanced = mean/Balanced)
+tableOfMeans
+```
 
 ```{r fig-ssrs2}
 #| eval: true
@@ -261,12 +343,13 @@ mypop |>
              scales = "free_x")
 ```
 
-It appears from comparing @fig-ssrs with @fig-ssrs2 that the latter has a better overlap with the population distribution, altough with n = 10 this is subject to a lot of chance still.
+It appears from comparing @fig-ssrs with @fig-ssrs2 that the latter has a better overlap with the population distribution, although with n = 10 this is subject to a lot of chance still.
 
-Now I just want to check if it makes a difference if I scale the auxiliary variables
 
 ```{r}
 #| eval: true
+#| include: false
+#Now I just want to check if it makes a difference if I scale the auxiliary variables
 mypop <- mypop |>
   mutate(aux1_s = scale(aux1),
          aux2_s = scale(aux2))
@@ -279,41 +362,130 @@ mysample3 <- mypop[sample_ind3 > (1 - eps), ]
 ```
 
 
-
 # PPS
 
 Next i want to introduce sampling with ppr.
 
 ```{r}
 #| eval: true
+#| include: false
 mypop <- mypop |>
   mutate(pi_pps = pi_h * area)
-pi_pps <- mypop |>
-  mutate(pi_pps = pi_h * area) |>
-  pull(pi_pps)
+
 
 set.seed(3143)
-sample_ind4 <- sampling::samplecube(X = X2, pik = pi_pps, comment = TRUE, method = 1)
+sample_ind4 <- sampling::samplecube(X = X2, pik = mypop$pi_pps, comment = TRUE, method = 1)
 mysample4 <- mypop[sample_ind4 > (1 - eps), ]
+
+ht_results <- lapply(vars, function(v) {
+  y <- mysample4[[v]]
+  res <- mase::horvitzThompson(y = y, pi = mysample4$pi_pps, var_est = TRUE)
+  data.frame(
+    PPS = round(res$pop_mean, 2),
+    PPS_var = round(res$pop_mean_var,2)
+  )
+}) %>%
+  bind_rows()
+
+tableOfMeans <- tableOfMeans |>
+  cbind(ht_results) |>
+  mutate(PPS = mean/PPS)
+tableOfMeans
 ```
 
+in out example, using pps strongly disfavoured population units below A Northing of 30 (@fig-pps). 
 
-```{r tbl-means}
+```{r fig-pps}
 #| eval: true
-#| tbl-cap: 'Comparing the means of four sampling methods against the true population mean. The variable is exponentially associated with latitude and area.'
-mypop |>
-  summarise(
-    True_mean = mean(aux1),
-    SRSS     = mean(aux1[sample_ind == 1]),
-    Balanced      = mean(aux1[sample_ind2 == 1]),
-    Balanced_and_scaled    = mean(aux1[sample_ind3 == 1]),
-    PPS  = mean(aux1[sample_ind4 == 1])
-    ) |>
-  t() |>
-  kable()
+#| fig-cap: 'Balanced sample with inclusion probability proportional to size (area).'
+ggplot(data = mypop) +
+  geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(stratum)), width = 1, height = 1, size = 0.5, colour = "white") +
+  geom_tile(data = mysample4, mapping = aes(x = Easting, y = Northing), fill = NA, width = 1, height = 1, linewidth = 0.7, colour = "black") +
+  scale_fill_viridis_d(name = "Stratum") +
+  coord_fixed()
 ```
 
-The stratified and balanced sample, without scaling, has the sample mean clostst to the true mean. The pps shifts the mean upwards, as expected, because we under-sample the low latitudes, but this would be corrected in the HT-estimator. Ideally I would do another simulation here and calculate the means 1000 times and get the distribution of means to compare between the methods, but I don't have time now.
 
 
 # Balanced and well-spread
+
+The samples do look like they are well-spread lready, and not clumped.
+This might get differnt if n was bigger. @fig-higherN does show two and three eighbouring cells getting selected.
+
+```{r fig-higherN}
+#| eval: true
+#| fig-cap: 'Balanced sample with n = 40'
+mypop <- mypop |>
+  mutate(pi_h2 = rep(40, 4) / N_h * area)
+
+set.seed(3143)
+sample_ind5 <- sampling::samplecube(X = X2, pik = mypop$pi_h2, comment = TRUE, method = 1)
+mysample5 <- mypop[sample_ind5 > (1 - eps), ]
+
+ggplot(data = mypop) +
+  geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(stratum)), width = 1, height = 1, size = 0.5, colour = "white") +
+  geom_tile(data = mysample5, mapping = aes(x = Easting, y = Northing), fill = NA, width = 1, height = 1, linewidth = 0.7, colour = "black") +
+  scale_fill_viridis_d(name = "Stratum") +
+  coord_fixed()
+```
+
+We can spread the samples geographically by balancing on the coordinates, but there are better ways, such as the local pivotal method. 
+
+
+```{r fig-lcube}
+#| eval: true
+#| fig-cap: 'Balanced and well-spread sample (n per strata is 40).'
+
+# model matrix, without the strata
+X4 <- model.matrix(~ aux1 + aux2 - 1, mypop)
+Xspread <- cbind(mypop$Easting, mypop$Northing)
+set.seed(314)
+
+mypop <- mypop |>
+  mutate(pi_h3 = pi_h2*area)
+sample_ind6 <- BalancedSampling::lcubestratified(
+  prob = mypop$pi_h3,
+  Xspread = Xspread,
+  Xbal = X4,
+  integerStrat = mypop$stratum)
+mysample6 <- mypop[sample_ind6,]
+
+ggplot(data = mypop) +
+  geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(stratum)), width = 1, height = 1, size = 0.5, colour = "white") +
+  geom_tile(data = mysample6, mapping = aes(x = Easting, y = Northing), fill = NA, width = 1, height = 1, linewidth = 0.7, colour = "black") +
+  scale_fill_viridis_d(name = "Stratum") +
+  coord_fixed()
+
+```
+
+Comparing @fig-lcube with @fig-higherN there are noticeably more clumping in the latter. @tbl-relDiff shows us that the relative difference between the Horvitz-Thompson estimators for the population mean is very similar across all our samples. 
+Perhaps most surprising is that SSRS was so good with aux2, an expoential variable. But it could also be that n=5 is too little for getting stable and robust measures of deviation. A better validation would be to boostrap the process and look at the variation in means then. 
+
+```{r tbl-relDiff}
+#| tbl-cap: 'Relative differences between HT-estimators for the population mean'
+#| eval: true
+
+ht_results <- lapply(vars, function(v) {
+  y <- mysample6[[v]]
+  res <- mase::horvitzThompson(y = y, pi = mysample6$pi_h3, var_est = TRUE)
+  data.frame(
+    Balanced_spread = round(res$pop_mean, 2),
+    Balanced_spread_var = round(res$pop_mean_var,2)
+  )
+}) %>%
+  bind_rows()
+
+tableOfMeans <- tableOfMeans |>
+  cbind(ht_results) |>
+  mutate(Balanced_spread = mean/Balanced_spread)
+
+tableOfMeans |>
+  select(!ends_with("var"),
+         -mean, -variance, -Sample) |>
+  pivot_longer(cols = !Variable) |>
+  pivot_wider(names_from = Variable, values_from = value) |>
+  kable()
+```
+
+
+
