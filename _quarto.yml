@@ -24,6 +24,8 @@ book:
     - part: "Read data from database"  
       chapters: 
         - 021_readFromDb.qmd
+    - part: "Spatial sampling"
+        - 030_simulation.qmd
     
 format:
   html: 
