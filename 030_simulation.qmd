@@ -7,10 +7,14 @@ The plan is to make hierarchical, stratified and balanced samples, with pps (pro
 We will borrow code from Brus' book on spatial sampling: <https://dickbrus.github.io/SpatialSamplingwithR/>,
 especially from [here](https://github.com/DickBrus/SpatialSamplingwithR/blob/3559338db9a36bfde5844d4671b97366f5cd5152/09-BalancedandSpreaded.Rmd#L350).
 
+# Create dummy dataset
 
 ```{r dummyData}
 # Create two variables with 20 values
 s1 <- s2 <- 1:20 - 0.5
+
+# set the samle size
+n = 10
 
 # expand to get every combination
 # These will act as coordinates for our dummy data 
@@ -32,11 +36,11 @@ mypop <- mypop |>
     group_by(stratum) |>
     summarise(N_h = n(), .groups = "drop") |>
   # calculate inclusion probability (pi) per strata, assuming we will sample 5 units
-    mutate(pi_h = rep(5, 4) / N_h) |>
+    mutate(pi_h = rep(n, 4) / N_h) |>
   # join with the original data frame
     right_join(mypop, by = "stratum") |>
    # adding also a uniform pi
-    mutate(pi_unif = 20/n(),
+    mutate(pi_unif = (n*4)/n(),
    # add mean values for response variables
            res1_mean = case_when(
              stratum == "A" ~ 5,
@@ -46,7 +50,7 @@ mypop <- mypop |>
            res2_mean = case_when(
              stratum == "A" ~ 50,
              stratum == "B" ~ 10,
-             stratum == "C" ~ 20,
+             stratum == "C" ~ 30,
              stratum == "D" ~ 14,
                    )) |>
   # create dummy response variables
@@ -54,8 +58,8 @@ mypop <- mypop |>
   mutate(res1 = rnorm(n = n(), mean = res1_mean, sd = 1),
          res2 = rnorm(n = n(), mean = res2_mean, sd = 3),
   # add dummy auxiliary variables
-         aux1 = seq(1,5, length.out = n()),
-         aux2 = rpois(n = n(), lambda = 5)) |>
+         aux1 = seq(0.5,5.5, length.out = n()),
+         aux2 = rpois(n = n(), lambda = 1)) |>
   ungroup() |>
   # round values
   mutate(across(where(is.numeric), \(x) round(x, 3))) |>
@@ -73,26 +77,80 @@ DT::datatable(mypop)
 
 ```
 
+```{r}
+mypop |>
+  pivot_longer(cols = starts_with(c("res", "aux"))) |>
+  ggplot()+
+  geom_histogram(aes(value),
+                 bins = 50)+
+  facet_grid(rows = vars(stratum), cols = vars(name),
+             scales = "free")+
+  theme_bw(
+  )
+```
+
+```{r tbl-dummySummary}
+#| tbl-cap: 'Means for each strata'
+mypop |>
+  pivot_longer(cols = starts_with(c("res", "aux")),
+               names_to = "variable", values_to = "values") |>
+  group_by(variable, stratum) |>
+  summarise(mean = mean(values)) |>
+  DT::datatable()
+
+```
+
+```{r fig-fiveMaps}
+#| fig-cap: 'Spatial distribution of the strata, and the four variables in the dummy dataset.'
+
+ggpubr::ggarrange(
+  ggplot(data = mypop) +
+    geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(stratum)), 
+              width = 1, height = 1, size = 0.5, colour = "white") +
+    scale_fill_viridis_d(name = "Stratum") +
+    coord_fixed(),
+  
+  ggplot(data = mypop) +
+    geom_tile(mapping = aes(x = Easting, y = Northing, fill = aux1), 
+              width = 1, height = 1, size = 0.5, colour = "white") +
+    scale_fill_viridis_c(name = "aux1") +
+    coord_fixed(),
+  
+  ggplot(data = mypop) +
+    geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(aux2)), 
+              width = 1, height = 1, size = 0.5, colour = "white") +
+    scale_fill_viridis_d(name = "aux2") +
+    coord_fixed(),
+  
+  ggplot(data = mypop) +
+    geom_tile(mapping = aes(x = Easting, y = Northing, fill = res1), 
+              width = 1, height = 1, size = 0.5, colour = "white") +
+    scale_fill_viridis_c(name = "res1") +
+    coord_fixed(),
+  
+  
+  ggplot(data = mypop) +
+    geom_tile(mapping = aes(x = Easting, y = Northing, fill = res2), 
+              width = 1, height = 1, size = 0.5, colour = "white") +
+    scale_fill_viridis_c(name = "res2") +
+    coord_fixed()
+)
+```
+
+## Stratified simple random sample
+
+Then I use the cube method in to select a sample balanced on the strata, essentially creating a stratified simple random sample.
+Here I use the `sampling` package. This is just a simple first test.
+
 ```{r tbl-modelMatrix}
 #| tbl-cap: 'Model matrix'
-# Create model matrix by expanding the strat column, explicitly assigning both prencenses and abcenses to each row.
+# Create model matrix by expanding the strata column, explicitly assigning both presences and absences to each row.
 X <- model.matrix(~ stratum - 1, mypop)
 DT::datatable(X)
 ```
 
-The data can be visualised like this:
-```{r fig-dummyData}
-ggplot(data = mypop) +
-  geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(stratum)), width = 1, height = 1, linewidth = 0.5, colour = "white") +
-  scale_fill_viridis_d(name = "Stratum") +
-  coord_fixed()
-```
-
-
-Then I use the cube method in to select a sample balanced on the strata.
-Here I use the `sampling` package.
 ```{r fig-bal1}
-#| fig-cap: 'Sample balanced on a categorical variable (strata).'
+#| fig-cap: 'Sample balanced on a categorical variable (strata). This is equivalent to a stratified simple random sample.'
 set.seed(314)
 sample_ind <- sampling::samplecube(X = X, pik = mypop$pi_h, comment = TRUE, method = 1)
 eps <- 1e-6
@@ -105,13 +163,39 @@ ggplot(data = mypop) +
   coord_fixed()
 ```
 
-In @fig-bal1, _n_= 5 for each strata, but this is not explicitly defined.
-The total _n_ across all strata is defined through the sum of the inclusion probability vector, which is 20.
+In @fig-bal1, _n_= `r n` for each strata, but this is not explicitly defined.
+The total _n_ across all strata is defined through the sum of the inclusion probability vector, which is `r sum(mypop$pi_h)`
 And then the n for each strata is a consequence of the number of units in each, and the _pi_ for each unit.
 
 
 In `BalancedSampling` the equivalent function is called `cube()`, or `cubestratified()`.
 The latter allow you to add the strata as a vector of size N, and it will be automatically added to the probabilities of each unit in the matrix.
+
+```{r fig-ssrs}
+#| fig-cap: 'Histograms comparing the population distribution (blue, uniform distribution) with the sample from a stratified simple random sample when n = 10.'
+
+mypop |>
+  ggplot()+
+  geom_histogram(aes(x = aux1, y = after_stat(density)),
+                 binwidth = 1,
+                 fill = "blue",
+                 colour = "black",
+                 alpha = .5)+
+  geom_histogram(data = mysample,
+                 aes(x = aux1, y = after_stat(density)),
+                 binwidth = 1,
+                 fill = "red",
+                 colour = "black",
+                 alpha = .5)+
+  facet_grid(.~stratum,
+             scales = "free_x")
+```
+
+## Stratified and balanced sample
+
+Now I want to balance the sample on two auxiliary variables, as well as on the strata.
+
+
 
 
 
