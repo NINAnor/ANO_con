@@ -28,19 +28,19 @@ library(mase)
 s1 <- s2 <- 1:60 - 0.5
 
 # set the per strata sample size
-n = 5
+n <- 5
 
 # expand to get every combination
-# These will act as coordinates for our dummy data 
+# These will act as coordinates for our dummy data
 mypop <- expand.grid(s1, s2)
 
 # name columns
 names(mypop) <- c("Easting", "Northing")
 
 # add column 'stratum'
-# Strata '0' for when s1 is between -Inf and 4; 
+# Strata '0' for when s1 is between -Inf and 4;
 # Strata '1' for when s1 is between 4 and 6; etc.
-#mypop$stratum <- as.factor(findInterval(mypop$Easting, c(4, 6, 14)))
+# mypop$stratum <- as.factor(findInterval(mypop$Easting, c(4, 6, 14)))
 mypop$stratum <- as.factor(findInterval(mypop$Easting, c(12, 18, 42)))
 
 # give the strata names as capital letters
@@ -48,45 +48,59 @@ levels(mypop$stratum) <- LETTERS[1:4]
 
 # add a column for area that can be used for pps
 mypop <- mypop |>
-  mutate(area = case_when(
-    Northing > 30 ~ 1,
-    .default = 0.3
-  ))
+  mutate(
+    area = case_when(
+      Northing > 30 ~ 1,
+      .default = 0.3
+    ),
+    area2 = case_when(
+      Northing > 10 ~ 1,
+      .default = 0.5
+    )
+  )
 
 mypop <- mypop |>
   # get population size N,
   # and the population area A_h,
   # for each strata
-    group_by(stratum) |>
-    summarise(N_h = n(),
-              A_h = sum(area), .groups = "drop") |>
+  group_by(stratum) |>
+  summarise(
+    N_h = n(),
+    A_h = sum(area),
+    A_h2 = sum(area2), 
+    .groups = "drop"
+  ) |>
   # calculate inclusion probability (pi) per strata, assuming we will sample 5 units
-    mutate(pi_h = rep(n, 4) / N_h) |>
+  mutate(pi_h = rep(n, 4) / N_h) |>
   # join with the original data frame
-    right_join(mypop, by = "stratum") |>
-   # adding also a pi based on the total area for each strata
-    mutate(pi_area = n * area / A_h,
-   # add unique ID's to each population unit
-           ID = row_number(),
-   # add mean values for response variables
-           res1_mean = case_when(
-             stratum == "A" ~ 5,
-             stratum == "B" ~ 10,
-             stratum == "C" ~ 15,
-             stratum == "D" ~ 20),
-           res2_mean = case_when(
-             stratum == "A" ~ 50,
-             stratum == "B" ~ 10,
-             stratum == "C" ~ 30,
-             stratum == "D" ~ 14,
-                   )) |>
+  right_join(mypop, by = "stratum") |>
+  # adding also a pi based on the total area for each strata
+  mutate(pi_area = n * area / A_h,
+    # add unique ID's to each population unit
+    ID = row_number(),
+    # add mean values for response variables
+    res1_mean = case_when(
+      stratum == "A" ~ 5,
+      stratum == "B" ~ 10,
+      stratum == "C" ~ 15,
+      stratum == "D" ~ 20
+    ),
+    res2_mean = case_when(
+      stratum == "A" ~ 50,
+      stratum == "B" ~ 10,
+      stratum == "C" ~ 30,
+      stratum == "D" ~ 14,
+    )
+  ) |>
   # create dummy response variables
   group_by(stratum) |>
-  mutate(res1 = rnorm(n = n(), mean = res1_mean, sd = 1),
-         res2 = rnorm(n = n(), mean = res2_mean, sd = 3),
-  # add dummy auxiliary variables
-         aux1 = seq(0.5,5.5, length.out = n())^2,
-         aux2 = rgamma(n = n(), shape = .4)) |>
+  mutate(
+    res1 = rnorm(n = n(), mean = res1_mean, sd = 1),
+    res2 = rnorm(n = n(), mean = res2_mean, sd = 3),
+    # add dummy auxiliary variables
+    aux1 = seq(0.5, 5.5, length.out = n())^2,
+    aux2 = rgamma(n = n(), shape = .4)
+  ) |>
   ungroup() |>
   # round values (but don't round the probabilities)
   mutate(across(starts_with(c("aux", "res")), \(x) round(x, 3))) |>
@@ -271,20 +285,24 @@ tableOfMeans
 #| fig-cap: 'Histograms comparing the population distribution (blue, gamma distribution) with the sample from a stratified simple random sample when n = 5.'
 
 mypop |>
-  ggplot()+
+  ggplot() +
   geom_histogram(aes(x = aux2, y = after_stat(density)),
-                 binwidth = 1,
-                 fill = "blue",
-                 colour = "black",
-                 alpha = .5)+
-  geom_histogram(data = mysample,
-                 aes(x = aux2, y = after_stat(density)),
-                 binwidth = 1,
-                 fill = "red",
-                 colour = "black",
-                 alpha = .5)+
-  facet_grid(.~stratum,
-             scales = "free_x")
+    binwidth = 1,
+    fill = "blue",
+    colour = "black",
+    alpha = .5
+  ) +
+  geom_histogram(
+    data = mysample,
+    aes(x = aux2, y = after_stat(density)),
+    binwidth = 1,
+    fill = "red",
+    colour = "black",
+    alpha = .5
+  ) +
+  facet_grid(. ~ stratum,
+    scales = "free_x"
+  )
 ```
 
 ## Balanced sample
@@ -299,7 +317,7 @@ X2 <- model.matrix(~ stratum + aux1 + aux2 - 1, mypop)
 DT::datatable(X2)
 ```
 
-```{r balanced}
+```{r fig-balanced}
 #| eval: true
 #| fig-cap: 'Sample balanced on two auxilary variables, as well as the categorical strata.'
 set.seed(3141)
@@ -361,7 +379,7 @@ It appears from comparing @fig-ssrs with @fig-ssrs2 that the latter has a better
 ## Balanced and well-spread
 
 The samples do look like they are well-spread already, and not clumped.
-This might get different if n was bigger. @fig-higherN does show two and three neighboring cells frequently get selected.
+This might get different if n was bigger. @fig-higherN shows how two and three neighboring cells frequently get selected.
 
 ```{r fig-higherN}
 #| eval: true
@@ -458,10 +476,9 @@ ggplot(data = mypop) +
   coord_fixed()
 ```
 
-# Comparison
+## Comparison
 
-The relative differences between the Horvitz-Thompson estimators for the population means is very similar across all our samples. 
-Perhaps most surprising is that SSRS was so good with aux2, an exponential variable. But it could also be that n=5 is too little for getting stable and robust measures of deviation. A better validation would be to bootstrap the process and look at the variation in means then. 
+The relative differences between the Horvitz-Thompson estimators for the population means is very similar across all our samples. Aux2 is providing the best tet of balance perhaps, because it is an exponential variable. The balanced and well-spread sample had the smallest relative deviation for thet variable. But it could also be that n=5 is too little for getting stable and robust measures of deviation. A better validation would be to bootstrap the process and look at the variation in means then. 
 
 
 
@@ -494,78 +511,163 @@ tableOfMeans |>
 ## Hierarchical sampling
 
 
-I want to create hierarchical samples that get reduced sequantially by 10 units each time. 
-I can create a new sample based on the previous sample. 
-One worry is that any differences between the initial sample and the population can get reproduced, causing a kind of _drift_ in the auxilary variables. 
+I want to create hierarchical samples that get reduced sequentially by _x_ number of units each time. I will use x = 20 here to keep things simple.
+I can create a new sample based on the previous sample, but
+one worry is that any differences between the initial sample and the population can get reproduced, causing a kind of _drift_ in the auxilary variables. 
 
-One option is then to sample, not from the consecutive sample, but from the entire population, and instead set the probabilities (pi) for those that were not already selected, to zero. 
+One option is then to sample, not from the consecutive sample, but from the entire population, and instead set the probabilities (pi) for those that were not already selected, to zero. That way the sub-samples are still balanced relative to the entire population.
 
-The _pi_ of a unit will then have to be calculated post hoc based on the _n_ of sample it came from, since the _pi_ associated with that specific sampling may be wrong.
+The _pi_ of a unit will then have to be calculated _post hoc_ based on the _n_ of the sample it came from (@sec-what).
 
-Let's create the first large sample, using n = 100.
+Let's create the first large sample, using n = 100. Because we really exaggerated the `area` variable, we could get the remaining area (the summed area in the sampled) to be less than the next sample size. Therefore I will use `area2` which make the differences in area a little less dramatic. 
+
 
 ```{r largeSmaple}
 #| eval: true
 #| fig-cap: 'Balanced sample (total n = 100) with inclusion probability proportional to size (area).'
 
-# The n is here for the total, and not per strata. 
-
+# The n is per strata. 
 n <- 100
 
 temp <- mypop |>
-      mutate(pi_area = n * area / A_h)
+      mutate(pi = n * area2 / A_h2)
+
+# Sums are OK:
+#temp |>
+#  group_by(stratum) |>
+#  summarise(pi_summed = sum(pi))
 
 set.seed(3143)
-sample_100 <- BalancedSampling::lcubestratified(
-  prob = temp$pi_area,
+sample_100_indices <- BalancedSampling::lcubestratified(
+  prob = temp$pi,
   Xspread = Xspread,
   Xbal = X4,
   integerStrat = mypop$stratum)
-mysample100 <- mypop[sample_100, ]
+sample_100 <- mypop[sample_100_indices, ]
 
 ggplot(data = mypop) +
-  geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(stratum)), width = 1, height = 1, size = 0.5, colour = "white") +
-  geom_tile(data = mysample100, mapping = aes(x = Easting, y = Northing), fill = NA, width = 1, height = 1, linewidth = 0.7, colour = "black") +
+  geom_tile(
+    mapping = aes(x = Easting, y = Northing, fill = factor(stratum)),
+    width = 1, height = 1, size = 0.5, colour = "white"
+  ) +
+  geom_tile(
+    data = sample_100, mapping = aes(x = Easting, y = Northing),
+    fill = NA, width = 1, height = 1, linewidth = 0.7, colour = "black"
+  ) +
   scale_fill_viridis_d(name = "Stratum") +
   coord_fixed()
 ```
 
-Then we create nested samples.
+Then we create nested samples. 
+
 
 ```{r nestedSamples}
 #| eval: true
 
-currentSample <- mysample100
+currentSample <- sample_100
 
-for (n in seq(90,10, -10)) {
-  previousSample <- currentSample$ID
+all_selected <- currentSample$ID
+
+for (n in seq(80,20, -20)) {
   
-  temp2 <- mypop |>
-      mutate(area = case_when(
-        ID %in% previousSample ~ area,
+  # print(n)
+  previousSample <- currentSample$ID
+  #Xspread_update <- 
+  temp <- mypop |>
+      mutate(area2 = case_when(
+        ID %in% previousSample ~ area2,
         .default = 0))
   
+  temp <- temp |>
+    group_by(stratum) |>
+    summarise(remainingArea = sum(area2), .groups = "drop") |>
+    right_join(temp, by = "stratum") |>
+    mutate(pi = n * area2 / remainingArea)
   
-}
-pi <- n *mypop$area / sum(mypop$area)
-
-set.seed(3143)
-sample_100 <- BalancedSampling::lcubestratified(
-  prob = pi,
-  Xspread = Xspread,
+  sample_indices <- BalancedSampling::lcubestratified(
+  prob = temp$pi,
+  Xspread = Xspread, 
+  # OBS, I'm not sure the spreading is working perfectly when using nested samples. 
+  # The algorithm might try to spread the population units, but 
+  # we need it to spread the sub-population (previous sample) units. 
+  # Setting values in Xspread to NA's do not work (it makes it crash)
+  # Setting values to something very high or low migth work,
+  # as long as it doesn't 'push' away any of the remaining units, 
+  # making them less likely to become selected and thus introduces a spatial bias.
   Xbal = X4,
   integerStrat = mypop$stratum)
-mysample100 <- mypop[sample_100, ]
+  
+  currentSample <- mypop[sample_indices,]
+  
+  assign(paste0("sample_", n), currentSample)
+  all_selected <- c(all_selected, currentSample$ID)
+}
 
-ggplot(data = mypop) +
-  geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(stratum)), width = 1, height = 1, size = 0.5, colour = "white") +
-  geom_tile(data = mysample100, mapping = aes(x = Easting, y = Northing), fill = NA, width = 1, height = 1, linewidth = 0.7, colour = "black") +
-  scale_fill_viridis_d(name = "Stratum") +
-  coord_fixed()
 ```
 
 
 
+```{r fig-no}
+#| eval: true
+#| fig-cap: 'Figure showing the selected population units, and how many of the in total five nestes samples they were included in.'
+ all_selected |>
+  as_tibble() |>
+  rename(ID = value) |>
+  group_by(ID) |>
+  summarise(no_selected = n()) |>
+  right_join(mypop, by = "ID") |>
+  ggplot() +
+  geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(no_selected)), 
+            width = 1, height = 1, size = 0.5, colour = "white") +
+  scale_fill_viridis_d(name = "Number of times selected", option = "C", direction = -1) +
+  coord_fixed()
+```
+
+```{r fig-finalSample}
+#| eval: true
+#| fig-cap: 'The smalles of the hierarchical samples (n = 20).'
+ggplot(data = mypop) +
+  geom_tile(
+    mapping = aes(x = Easting, y = Northing, fill = factor(stratum)),
+    width = 1, height = 1, size = 0.5, colour = "white"
+  ) +
+  geom_tile(
+    data = sample_20, mapping = aes(x = Easting, y = Northing),
+    fill = NA, width = 1, height = 1, linewidth = 0.7, colour = "black"
+  ) +
+  scale_fill_viridis_d(name = "Stratum") +
+  coord_fixed()
+```
+
+It still a question whether the final or smallest sample (@fig-finalSample) is balanced. A superfical analyses tells us it's looking good (@fig-finalBal).
 
 
+```{r fig-finalBal}
+#| eval: true
+#| fig-cap: 'Histograms comparing the smallest of the nested samples (red) against the true population (blue).'
+mypop |>
+  ggplot() +
+  geom_histogram(aes(x = aux2, y = after_stat(density)),
+    binwidth = 1,
+    fill = "blue",
+    colour = "black",
+    alpha = .5
+  ) +
+  geom_histogram(
+    data = sample_20,
+    aes(x = aux2, y = after_stat(density)),
+    binwidth = 1,
+    fill = "red",
+    colour = "black",
+    alpha = .5
+  ) +
+  facet_grid(. ~ stratum,
+    scales = "free_x"
+  )
+```
 
+## Whats the pi? {#sec-what}
+
+Now say we end up using `sample20` for _stratum A_ and `sample40` for _stratum B_. What pi's should we use when calculating the HT-estimator?
+
+We should use the original _A_h_ (from the entire population), and the _n_ from the specific sample (i.e. 20 and 40 in this case, respectively.)
