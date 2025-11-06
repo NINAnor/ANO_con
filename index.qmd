@@ -16,7 +16,7 @@ library(RPostgres)
 
 This web site show you how to connect to the internal NINA postgreSQL database containing the spatial data for the ANO-modules. 
 The database is found on the `t2lippgsql03` server , and is called  `ano_moduler`.
-This with admin rights are  
+This with admin rights are   
 
 - Anders Kolstad (anders.kolstad@nina.no)
 - Jens Åström (jens.astrom@nina.no)
