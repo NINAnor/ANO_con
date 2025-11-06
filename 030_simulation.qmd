@@ -568,50 +568,49 @@ currentSample <- sample_100
 
 all_selected <- currentSample$ID
 
-for (n in seq(80,20, -20)) {
-  
+for (n in seq(80, 20, -20)) {
   # print(n)
   previousSample <- currentSample$ID
+
   Xspread <- tibble(
-      E = mypop$Easting, 
-      N = mypop$Northing) |>
-    mutate(ID = row_number(),
-           E = case_when(
-             ID %in% previousSample ~ E,
-             .default = 3), # test with 3 to see if we get a bias
-           E = case_when(
-             ID %in% previousSample ~ N,
-             .default = 3)
-           ) |>
+    E = mypop$Easting,
+    N = mypop$Northing
+  ) |>
+    mutate(
+      ID = row_number(),
+      E = case_when(
+        ID %in% previousSample ~ E,
+        .default = 999
+      ), # tested with 30 to see if we got a bias, but no
+      N = case_when(
+        ID %in% previousSample ~ N,
+        .default = 999
+      )
+    ) |>
     select(-ID) |>
     as.matrix()
-  
+
   temp <- mypop |>
-      mutate(area2 = case_when(
-        ID %in% previousSample ~ area2,
-        .default = 0))
-  
+    mutate(area2 = case_when(
+      ID %in% previousSample ~ area2,
+      .default = 0
+    ))
+
   temp <- temp |>
     group_by(stratum) |>
     summarise(remainingArea = sum(area2), .groups = "drop") |>
     right_join(temp, by = "stratum") |>
     mutate(pi = n * area2 / remainingArea)
-  
+
   sample_indices <- BalancedSampling::lcubestratified(
-  prob = temp$pi,
-  Xspread = Xspread, 
-  # OBS, I'm not sure the spreading is working perfectly when using nested samples. 
-  # The algorithm might try to spread the population units, but 
-  # we need it to spread the sub-population (previous sample) units. 
-  # Setting values in Xspread to NA's do not work (it makes it crash)
-  # Setting values to something very high or low migth work,
-  # as long as it doesn't 'push' away any of the remaining units, 
-  # making them less likely to become selected and thus introduces a spatial bias.
-  Xbal = X4,
-  integerStrat = mypop$stratum)
-  
-  currentSample <- mypop[sample_indices,]
-  
+    prob = temp$pi,
+    Xspread = Xspread,
+    Xbal = X4,
+    integerStrat = mypop$stratum
+  )
+
+  currentSample <- mypop[sample_indices, ]
+
   assign(paste0("sample_", n), currentSample)
   all_selected <- c(all_selected, currentSample$ID)
 }
@@ -631,7 +630,7 @@ for (n in seq(80,20, -20)) {
   right_join(mypop, by = "ID") |>
   ggplot() +
   geom_tile(mapping = aes(x = Easting, y = Northing, fill = factor(no_selected)), 
-            width = 1, height = 1, size = 0.5, colour = "white") +
+            width = 1, height = 1, linewidth = 0.5, colour = "white") +
   scale_fill_viridis_d(name = "Number of times selected", option = "C", direction = -1) +
   coord_fixed()
 ```
@@ -684,3 +683,15 @@ mypop |>
 Now say we end up using `sample20` for _stratum A_ and `sample40` for _stratum B_. What pi's should we use when calculating the HT-estimator?
 
 We should use the original _A_h_ (from the entire population), and the _n_ from the specific sample (i.e. 20 and 40 in this case, respectively.)
+
+## Create function
+
+Based on the above, and with the help of ChatGPT [version 5), I created a contained function
+`nested_balanced_samples` that we can source in subsequent chapters.
+You can fund in under `R/` in the [github repo](https://github.com/NINAnor/ANO_con).
+
+```{r}
+source(here::here("R/nested_balanced_samples.R"))
+```
+
+
