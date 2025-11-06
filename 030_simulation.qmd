@@ -572,7 +572,20 @@ for (n in seq(80,20, -20)) {
   
   # print(n)
   previousSample <- currentSample$ID
-  #Xspread_update <- 
+  Xspread <- tibble(
+      E = mypop$Easting, 
+      N = mypop$Northing) |>
+    mutate(ID = row_number(),
+           E = case_when(
+             ID %in% previousSample ~ E,
+             .default = 3), # test with 3 to see if we get a bias
+           E = case_when(
+             ID %in% previousSample ~ N,
+             .default = 3)
+           ) |>
+    select(-ID) |>
+    as.matrix()
+  
   temp <- mypop |>
       mutate(area2 = case_when(
         ID %in% previousSample ~ area2,
