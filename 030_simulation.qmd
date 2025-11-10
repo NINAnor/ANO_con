@@ -686,12 +686,12 @@ We should use the original _A_h_ (from the entire population), and the _n_ from 
 
 ## Create function
 
-Based on the above, and with the help of ChatGPT [version 5), I created a contained function
-`nested_balanced_samples` that we can source in subsequent chapters.
-You can fund in under `R/` in the [github repo](https://github.com/NINAnor/ANO_con).
+Based on the above, and with the help of ChatGPT [version 5), I created a function `nested_balanced` in a new package [spaceR](https://ninanor.github.io/spaceR/). We can install the package like this:
 
 ```{r}
-source(here::here("R/nested_balanced_samples.R"))
+remotes::install_github("NINAnor/spaceR")
+library(spaceR)
+?nested_balanced
 ```
 
 
