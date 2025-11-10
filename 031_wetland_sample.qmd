@@ -12,35 +12,44 @@ library(dbplyr)
 library(DBI)
 library(RPostgres)
 library(dm)
+detach("package:spaceR", unload=TRUE)
+#Sys.unsetenv("GITHUB_PAT")
+#Sys.unsetenv("GITHUB_TOKEN")
+#remotes::install_github("NINAnor/spaceR", force = T)
 library(spaceR)
+#?nested_balanced
+
 ```
 
 ## Get and prepare sampling frame
-First we need to fetch the samping frame from the database.
+First we need to fetch the sampling frame from the database.
 ```{r viewData}
 #| include: true
 #| eval: true
 con <- DBI::dbConnect(drv = RPostgres::Postgres(), host = "t2lippgsql03", dbname = "ano_moduler")
 
-wet_sample <- dplyr::tbl(con, dbplyr::in_schema("sampling_frames", "samplingframe_vaatmark_2025")) |>
+pop <- dplyr::tbl(con, dbplyr::in_schema("sampling_frames", "samplingframe_vaatmark_2025")) |>
   dplyr::collect()
 
-small <- function(data = wet_sample) data |>  slice_sample(n = 10000)
+# helper to get a small subset of the data for testing
+small <- function(data = pop) data |>  slice_sample(n = 10000)
 ```
 
-This dataset (sampling frame) is `r nrow(wet_sample)` long. @tbl-sf show just the first ten rows. We have two spreading variables: an easting `centroid_x`, a northing `centroid_y`. We also have sampling unit ID's in `ssbid`, and two auxiliary variable for balancing: `mean_slope` and `abi`. The stratification variable we need to create based on `seksjon_kode` and `sone_kode`. We also need to create an `area` variable based on the sum of `r_hav` and `r_ferskvann`. 
+This dataset (sampling frame) is `r nrow(pop)` long. @tbl-sf show just the first ten rows. We have two spreading variables: an easting `ost`, a northing `nord`. We also have sampling unit ID's in `ssbid`, and two auxiliary variable for balancing: `mean_slope` and `abi`. The stratification variable we need to create based on `seksjon_kode` and `sone_kode`. We also need to create an `area` variable based on the sum of `r_hav` and `r_ferskvann`. 
 
 ```{r tbl-sf}
 #| include: true
-wet_sample |>
+pop |>
   slice_head(n = 10) |>
   DT::datatable()
 ```
 
 ```{r datacheck}
 #| eval: false
-summary(wet_sample$r_ferskvann)
-summary(wet_sample$r_hav)
+#| include: false
+summary(pop$r_ferskvann)
+summary(pop$r_hav)
+wet_small <- small(pop)
 dotchart(wet_small$r_ferskvann)
 dotchart(wet_small$r_hav)
 dotchart(wet_small$centroid_x)
@@ -55,14 +64,11 @@ dotchart(wet_small$abi)
 
 ```{r makeVars}
 #| eval: true
-# the northing numbers are very large 
-minN <- min(wet_sample$centroid_y)
 
-wet_sample <- wet_sample |>
+pop <- pop |>
   rename(Northing = nord,
          Easting = ost) |>
   mutate(area = 100 - r_hav - r_ferskvann,
-         Northing = Northing - minN,
          stratum = case_when(
            seksjon_kode %in% c("6SE-3", "6SE-4", "6SE-5") & sone_kode %in% c("6SO-1", "6SO-2") ~  1,
            seksjon_kode %in% c("6SE-2") & sone_kode %in% c("6SO-1", "6SO-2") ~  2,
@@ -76,34 +82,56 @@ wet_sample <- wet_sample |>
            .default = 99
            ))
 
-wet_small <- small()
 ```
 
-There is a problem with NAs in the bioclimatic sones and regions:
+There is one or a few cases of negative areas. I will just set those tpo be zeros.
 ```{r}
 #| eval: true
-wet_sample |>
+# min(pop$area) #negative
+# max(pop$area) #OK
+pop <- pop |>
+  mutate(area = case_when(
+    area < 0 ~ 0,
+    .default = area
+  ))
+```
+
+
+There is a problem with NAs in the bioclimatic zones and regions:
+```{r tbl-n}
+#| eval: true
+#| tbl-cap: 'Number of population units (SSB500 squares) in each strata.'
+pop |>
   group_by(stratum) |>
   summarise(n = n())
 ```
 
-We have `r nrow(wet_sample[wet_sample$stratum == 99,])` population units that we don't know the strata for. Lets see if there is a pettern in where these units are found. This first check tells us that stratum 99 is a consequence of NA's on both the sone and section. Then @fig-dots tells us that the population units where we lack data on biocliatic regions are mainly along the coast (a lot of ocean), but also close to freshwater. This isa problem, as it will lead to undersampling of areas close to water.
-However, we cannot solve this now, and rumors have it that the bioclimatic zone and regions dataset will get updated very soon, so then we can also update (rerun) the sampling pipeline.
-
-The same problem seems to also be for `abi`, that we have false zero values along the coast or along water. We know this from visial checks, but also from @fig-dots where we see that `abi` is always zero, at the same time that `r_bebygd_samf` is not.
+We have `r nrow(pop[pop$stratum == 99,])` population units that we don't know the strata for. 
+Let's see if there is a pattern to where these units are found. 
+The first check below tells us that stratum 99 is a consequence of NA's on both the sone and section. 
 ```{r}
 #| eval: true
-wet_sample |>
+pop |>
   filter(stratum == 99) |>
   tidyr::unite(combo, c(seksjon_kode, sone_kode)) |>
   distinct(combo)
 ```
 
+Then @fig-dots tells us that the population units where we lack data on bioclimatic regions are mainly along the coast (a lot of ocean), 
+but also close to freshwater. 
+This is a problem, as it will lead to undersampling of areas close to water.
+However, we cannot solve this now, and rumors have it that the bioclimatic zone and regions dataset will get updated very soon, 
+so then we can also update (rerun) the sampling pipeline.
+
+The same problem seems to also be for `abi`, that we have false zero values along the coast or along water. 
+We know this from visual checks, but also from @fig-dots where we see that `abi` is always zero, 
+at the same time that `r_bebygd_samf` is not.
+
 ```{r fig-dots}
 #| eval: true
 #| message: false
 #| fig-cap: 'Distrbutions for selected variables for whick we lack data on stratum (bioclimatic region).' 
-wet_sample |>
+pop |>
   filter(stratum == 99) |>
   pivot_longer(cols = c(r_hav, r_ferskvann, abi, mean_slope, r_bebygd_samf, r_sno_isbre)) |>
   ggplot()+
@@ -114,23 +142,22 @@ wet_sample |>
 ```
 
 ## Sample
-
+First we subset the columns, and run a test on 10 000 rows.
 ```{r stripdata}
 #| eval: true
 
-wet_sample <- wet_sample |>
-  select(ssbid, Easting = ost, Northing = nord, area, abi, mean_slope, stratum)
-
-wet_sample <- wet_sample |>
-  filter(stratum != 99)
+pop <- pop |>
+  select(ssbid, Easting, Northing, area, abi, mean_slope, stratum) |>
+    filter(stratum != 99)
 
 wet_small <- small()
 ```
 
-```{r}
-testRun <- spaceR::nested_balanced_samples(
+```{r test}
+#| eval: true
+testRun <- spaceR::nested_balanced(
   samplingFrame = wet_small,
-  n_seq = seq(50, 10, -10),
+  n_seq = c(50, 20),
   id_col = "ssbid",
   stratum_col = "stratum",
   easting_col = "Easting",
@@ -138,8 +165,204 @@ testRun <- spaceR::nested_balanced_samples(
   area_col = "area",
   xbal_formula = ~ abi + mean_slope -1,
   exclude_offset = 1e+09,
-  return_indices = TRUE
+  return_dataframe = FALSE,
+  out_name = "testSample",
+  auto_n = TRUE
 )
 ```
 
+The test went fine, with no errors. 
+
+The returned object `testRun` which is a list of lists. 
+```{r testnames}
+#| eval: true
+names(testRun)
+```
+
+We can access each sample and view the ID's (ssbid) like this 
+```{r testhead}
+#| eval: true
+testRun$testSample_50$ID[1:4]
+```
+
+Or we can get the inclusion probabilities
+```{r testhead2}
+#| eval: true
+testRun$testSample_50$prob[1:4]
+```
+
+Then we try the same on the entire sampling population
+
+```{r}
+#| eval: true
+pop <- pop |>
+  mutate(area_prop = area / 100)
+```
+
+```{r sampleAll}
+#| eval: true
+tictoc::tic()
+wetlands <- spaceR::nested_balanced(
+  samplingFrame = pop,
+  n_seq = c(5000, 100),
+  id_col = "ssbid",
+  stratum_col = "stratum",
+  easting_col = "Easting",
+  northing_col = "Northing",
+  area_col = "area_prop",
+  xbal_formula = ~ abi + mean_slope -1,
+  exclude_offset = 1e+09,
+  return_dataframe = FALSE,
+  out_name = "wetlands1",
+  auto_n = TRUE,
+  safetyNumber = 1,
+  min_step = 10
+)
+tictoc::toc()
+# 1260.604 sec elapsed
+#saveRDS(wetlands, "data/wetlands.rds")
+```
+
+```{r}
+hist(wetlands$wetlands1_4385$prob)
+```
+
+
+In @tbl-n2 we see that strata 3 is the one with the smallest area, and a population count of 44k and a summed area of 3.6 mill.
+The probability of inclusion is $n x area / sum(area)$.
+This is when using PPS.
+If the area of a unit is 100 (max), and the n is 5000, we get pi of 50000 / 3 600 000, which is fine. 
+But on the second iteration, the remaining area is much less. 
+In @tbl-sample5000 we see that the remaining area is as little as 460k, 
+but it needs to be above 499 000 in order to keep the probabilities below 1. 
+Probabilities above 1 means that unit will always be in the sample, 
+an in practice this will very quickly  filter out all the units with less then 1 probability. 
+The second iteration, with 4990 samples, would yield probabilities above 1: 4990 X 100 / 460 000 = 1.08.
+We would need the second iteration to be with _n_ = 4500. 
+Then we would get 4500 X 100 / 460 000 = <1.
+
+As we get towards lower n, we can use smaller steps.
+In fact, the percentage reduction for each iteration that will
+still yield probabilities <1 is predictable.
+It start of relatively high, about 8.2% for our strata 2,
+regardles of starting with 5000 or 300 samples (@tbl-sample5000, and @tbl-sample300).
+Then it drops to about 4.6%.
+We can use this to get as small steps as possible. 
+
+Note that is we don't use PPS, we can use as small steps as we want. 
+But then we would get more samples with a lot of water in them.
+
+
+
+
+
+```{r tbl-n2}
+#| eval: true
+#| tbl-cap: 'Number of popualtion units and summed area per strata.'
+pop |>
+  group_by(stratum) |>
+  summarise(n = n(),
+            area = sum(area)) |>
+  kable()
+```
+
+```{r tbl-sample5000}
+#| eval: true
+#| tbl-cap: 'Remaining units (5000) and summed area per strata after sampling 5000 units.'
+
+# testing to see what the remaining area is after sampling 5000
+test5000 <- spaceR::nested_balanced(
+  samplingFrame = pop,
+  n_seq = 5000, 
+  id_col = "ssbid",
+  stratum_col = "stratum",
+  easting_col = "Easting",
+  northing_col = "Northing",
+  area_col = "area",
+  xbal_formula = ~ abi + mean_slope -1,
+  exclude_offset = 1e+09,
+  return_dataframe = TRUE,
+  out_name = "1_wetlands"
+)
+
+test5000[[1]] |>
+  group_by(stratum) |>
+  summarise(n = n(),
+            area = sum(area)) |>
+  mutate(diff = (n*100-area),
+         ratio = round((n*100-area)/(n*100), 3)) |>
+  kable()
+```
+
+```{r tbl-sample300}
+#| tbl-cap: 'Remaining units (5000) and summed area per strata after sampling 5000 units.'
+#| eval: true
+# testing to see what the remaining area is after sampling 300 units
+test300 <- spaceR::nested_balanced(
+  samplingFrame = pop,
+  n_seq = seq(300, 50, -25), 
+  id_col = "ssbid",
+  stratum_col = "stratum",
+  easting_col = "Easting",
+  northing_col = "Northing",
+  area_col = "area",
+  xbal_formula = ~ abi + mean_slope -1,
+  exclude_offset = 1e+09,
+  return_dataframe = TRUE,
+  out_name = "1_wetlands"
+)
+
+test300[[1]] |>
+  group_by(stratum) |>
+  summarise(n = n(),
+            area = sum(area)) |>
+   mutate(diff = (n*100-area),
+         ratio = round((n*100-area)/(n*100), 3)) |>
+  rbind(
+    
+  test300[[2]] |>
+  group_by(stratum) |>
+  summarise(n = n(),
+            area = sum(area)) |>
+   mutate(diff = (n*100-area),
+         ratio = round((n*100-area)/(n*100), 3)),
+  
+  test300[[3]] |>
+    group_by(stratum) |>
+    summarise(n = n(),
+            area = sum(area)) |>
+    mutate(diff = (n*100-area),
+         ratio = round((n*100-area)/(n*100), 3)),
+        
+  test300[[11]] |>
+    group_by(stratum) |>
+    summarise(n = n(),
+            area = sum(area)) |>
+    mutate(diff = (n*100-area),
+         ratio = round((n*100-area)/(n*100), 3))
+  )
+
+```
+
+```{r}
+
+mySeq <- 
+
+test300 <- spaceR::nested_balanced(
+  samplingFrame = pop,
+  n_seq = seq(5000, 250, -25), 
+  id_col = "ssbid",
+  stratum_col = "stratum",
+  easting_col = "Easting",
+  northing_col = "Northing",
+  area_col = "area",
+  xbal_formula = ~ abi + mean_slope -1,
+  exclude_offset = 1e+09,
+  return_dataframe = TRUE,
+  out_name = "1_wetlands"
+)
+
+```
+
+Then we are ready to sample from the whole sampling frame. 
 
