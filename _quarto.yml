@@ -27,6 +27,7 @@ book:
     - part: "Spatial sampling"
       chapters:
         - 030_simulation.qmd
+        - 031_wetland_sample.qmd
     
 format:
   html: 
