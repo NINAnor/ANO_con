@@ -24,6 +24,12 @@ coast_sample <- dplyr::tbl(con, dbplyr::in_schema("sampling_frames", "samplingfr
 coast_sample
 ```
 
+Same for the wetlands samples:
+```{r}
+#| eval: true
+vaatmark_2025 <- dplyr::tbl(con, dbplyr::in_schema("samples", "vaatmark_2025"))
+```
+
 This data only exists remotely still.
 We need to use collect to bring it down to our local machine. 
 At the same time we can use dplyr pipelines to filter the data.
@@ -46,8 +52,7 @@ Then we can view data easily.
 dm <- dm::dm_from_con(con,
   table_names = c(
     "ssb_500",
-    "samplingframe_havstrand_2024",
-    "samplingframe_vaatmark_2025"
+    "vaatmark_2025"
   ),
   learn_keys = T
 )
@@ -58,28 +63,59 @@ DM learns the relationships between tables by reading the constraints.
 First I can check that the amount of constraints is good.
 
 ```{r}
+#| eval: true
 dm_get_all_fks(dm)
 ```
 
 ```{r}
+#| eval: true
 dm |>
   dm::dm_set_colors(
-    darkgreen = samplingframe_havstrand_2024, 
+    darkgreen = vaatmark_2025, 
     darkblue = ssb_500) |>
   dm::dm_draw() 
 ```
 
-![](img/screen_db.png)
-
-
 Then we can read the data back, including the geometries from the parent table.
+The geometries are stores (or at least returned) as hex-encoded WKB/EWKB, and we need to convert then to sfc first, before we can turn them into sf.
 ```{r}
-#| eval: true
-dm |>
-  dm::dm_flatten_to_tbl(samplingframe_havstrand_2024,
-                    .recursive = TRUE)
+#| eval: false
+dm2 <- dm |>
+  dm::dm_flatten_to_tbl(vaatmark_2025,
+                    .recursive = TRUE) |>
+  mutate(geom_wkb = dbplyr::sql("ST_AsBinary(geom)")) |>
+  select(-geom) |>
+  collect() |>
+  mutate(geom = sf::st_as_sfc(geom_wkb, crs = 25833)) |>
+  sf::st_as_sf(sf_column_name = "geom")
+
+```
+```{r}
+path <- "/data/Egenutvikling/41001581_egenutvikling_anders_kolstad/ANO"
+st_write(dm2, paste0(path, "/vaatmark_2025.gpkg"), append = FALSE)
 ```
 
+```{r}
+library(tmap)
+tmap_mode("view")
 
-The geometry column is a bit weird though. Not sure what is happening there,
-but see [this](https://forum.posit.co/t/geom-column-support-for-dbplyr-for-spatial-databases/3172/9). 
+dm2 |>
+  select(ssbid, geom) |>
+  filter("300" > 0) |>
+  slice_head(n = 1000) |>
+tm_shape() +
+  tm_polygons(col = "green")
+```
+![](img/vaatmark1_5000.jpg)
+
+
+```{r}
+dm2 |>
+  select(ssbid, geom, `300`) |>
+  drop_na(`300`) |>
+  slice_head(n = 1000) |>
+tm_shape() +
+  tm_polygons(col = "blue")
+```
+
+![](img/vaatmark1_300.jpg)

@@ -825,7 +825,7 @@ write_sf(wetlands_db, dsn = con,
          append = T)
 ```
 
-Tesing that the data is there:
+Testing that the data is there:
 
 ```{r}
 #| eval: true
