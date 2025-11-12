@@ -21,5 +21,6 @@ Imports:
   sampling,
   DT,
   ggpubr,
-  tmap
+  tmap,
+  dm
 

@@ -5,6 +5,7 @@ Now we go on to create the actual samples for ANO våtmark (wetlands), using `sp
 
 ```{r setup_sample}
 #| include: false
+#| eval: true
 #| message: false
 #| error: false
 library(tidyverse)
@@ -12,7 +13,7 @@ library(dbplyr)
 library(DBI)
 library(RPostgres)
 library(dm)
-detach("package:spaceR", unload=TRUE)
+#detach("package:spaceR", unload=TRUE)
 #Sys.unsetenv("GITHUB_PAT")
 #Sys.unsetenv("GITHUB_TOKEN")
 #remotes::install_github("NINAnor/spaceR", force = T)
@@ -302,6 +303,7 @@ write_csv(wetlands_db, "data/wetland_samples.csv")
 
 
 ```{r}
+#| code-fold: true
 q1 <- 'create table samples.vaatmark_2025 (
 wetlands_sample_unit_ID varchar(50) PRIMARY KEY,
 ssbid varchar(50),

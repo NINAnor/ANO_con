@@ -10,6 +10,8 @@ library(DBI)
 library(RPostgres)
 library(dm)
 ```
+
+## Overview
 Now that we have added data to the database, we can also read it back.
 
 ```{r}
@@ -30,6 +32,8 @@ Same for the wetlands samples:
 vaatmark_2025 <- dplyr::tbl(con, dbplyr::in_schema("samples", "vaatmark_2025"))
 ```
 
+
+## Collect and join data
 This data only exists remotely still.
 We need to use collect to bring it down to our local machine. 
 At the same time we can use dplyr pipelines to filter the data.
@@ -64,7 +68,7 @@ First I can check that the amount of constraints is good.
 
 ```{r}
 #| eval: true
-dm_get_all_fks(dm)
+dm::dm_get_all_fks(dm)
 ```
 
 ```{r}
@@ -119,3 +123,57 @@ tm_shape() +
 ```
 
 ![](img/vaatmark1_300.jpg)
+
+### Collect bioclimatic dataset
+
+```{r}
+#| eval: true
+bc <- dplyr::tbl(con, dbplyr::in_schema("helper_variables", "bioclimatic_regions"))
+```
+
+
+```{r}
+#| eval: false
+bc <- bc |>
+  mutate(geom_wkb = dbplyr::sql("ST_AsBinary(geom)")) |>
+  select(-geom) |>
+  collect() |>
+  mutate(geom = sf::st_as_sfc(geom_wkb, crs = 25833)) |>
+  sf::st_as_sf(sf_column_name = "geom")
+
+
+reg <- unique(bc2$BCregion)
+bc2 <- bc |>
+  mutate(BCregion = case_when(
+    BCregion == reg[1] ~ 2,
+    BCregion == reg[2] ~ 1,
+    BCregion == reg[3] ~ 3,
+    BCregion == reg[4] ~ 5,
+    BCregion == reg[5] ~ 7,
+    BCregion == reg[6] ~ 6,
+    BCregion == reg[7] ~ 4,
+    BCregion == reg[8] ~ 8,
+    BCregion == reg[9] ~ 4,
+    BCregion == reg[10] ~ 9,
+    BCregion == reg[11] ~ 1,
+    BCregion == reg[12] ~ 7,
+  ))
+
+bc3 <- bc2 |>
+  group_by(BCregion) |>
+  summarise()
+tmap_mode("plot")
+
+pal <- tmaptools::get_brewer_pal("Accent", n = 9, stretch = FALSE)
+map<- bc2 |>
+  tm_shape()+
+  tm_polygons(col="BCregion", style="cat", palette = pal, lwd=0)
+
+tmap_save(map, "img/bcMap.png")
+```
+
+
+![](img/bcMap.png)
+
+
+

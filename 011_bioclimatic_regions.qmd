@@ -59,6 +59,7 @@ down-weight the relative sampling effort in weakly oceanic (inlc. the transition
 They make up about 1/3 of the total area in Norway,
 but when we stratify the sampling, they only get the same sampling effort as the other strata.
 
+
 ```{r}
 png("img/bcregPie.png", width = 1480, height = 1480)
 
