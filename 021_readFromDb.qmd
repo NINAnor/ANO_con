@@ -94,9 +94,11 @@ dm2 <- dm |>
   sf::st_as_sf(sf_column_name = "geom")
 
 ```
+
+Then I export this as a geopackage
 ```{r}
 path <- "/data/Egenutvikling/41001581_egenutvikling_anders_kolstad/ANO"
-st_write(dm2, paste0(path, "/vaatmark_2025.gpkg"), append = FALSE)
+st_write(dm2, paste0(path, "/vaatmark_2025_1000_10.gpkg"), append = FALSE)
 ```
 
 ```{r}
@@ -104,25 +106,24 @@ library(tmap)
 tmap_mode("view")
 
 dm2 |>
-  select(ssbid, geom) |>
-  filter("300" > 0) |>
-  slice_head(n = 1000) |>
+  select(ssbid, geom, `150`) |>
+  drop_na(`150`) |>
 tm_shape() +
-  tm_polygons(col = "green")
+  tm_borders(col = "darkgreen", lwd = 10)
 ```
-![](img/vaatmark1_5000.jpg)
-
-
 ```{r}
 dm2 |>
-  select(ssbid, geom, `300`) |>
-  drop_na(`300`) |>
+  select(ssbid, geom, `50`) |>
+  drop_na(`50`) |>
   slice_head(n = 1000) |>
 tm_shape() +
-  tm_polygons(col = "blue")
+  tm_borders(col = "blue", lwd = 10)
 ```
 
-![](img/vaatmark1_300.jpg)
+![](img/vaatmark1_150.jpg)
+
+
+![](img/vaatmark1_50.jpg)
 
 ### Collect bioclimatic dataset
 
@@ -164,12 +165,13 @@ bc3 <- bc2 |>
   summarise()
 tmap_mode("plot")
 
-pal <- tmaptools::get_brewer_pal("Accent", n = 9, stretch = FALSE)
-map<- bc2 |>
+pal <- tmaptools::get_brewer_pal("Paired", n = 9)
+
+map<- bc3 |>
   tm_shape()+
   tm_polygons(col="BCregion", style="cat", palette = pal, lwd=0)
-
-tmap_save(map, "img/bcMap.png")
+map
+#tmap_save(map, "img/bcMap.png")
 ```
 
 
