@@ -1,0 +1,840 @@
+# Wetland samples
+
+Now we go on to create the actual samples for ANO våtmark (wetlands), using `spaceR::nested_balanced_samples`.
+
+
+```{r setup_sample}
+#| include: false
+#| eval: true
+#| message: false
+#| error: false
+library(tidyverse)
+library(dbplyr)
+library(DBI)
+library(RPostgres)
+library(dm)
+#detach("package:spaceR", unload=TRUE)
+#Sys.unsetenv("GITHUB_PAT")
+#Sys.unsetenv("GITHUB_TOKEN")
+#remotes::install_github("NINAnor/spaceR", force = T)
+library(spaceR)
+#?nested_balanced
+
+```
+
+## Get and prepare sampling frame
+First we need to fetch the sampling frame from the database.
+```{r viewData}
+#| include: true
+#| eval: true
+con <- DBI::dbConnect(drv = RPostgres::Postgres(), host = "t2lippgsql03", dbname = "ano_moduler")
+
+pop <- dplyr::tbl(con, dbplyr::in_schema("sampling_frames", "samplingframe_vaatmark_2025")) |>
+  dplyr::collect()
+
+# helper to get a small subset of the data for testing
+small <- function(data = pop) data |>  slice_sample(n = 10000)
+```
+
+This dataset (sampling frame) is `r nrow(pop)` long. @tbl-sf show just the first ten rows. We have two spreading variables: an easting `ost`, a northing `nord`. We also have sampling unit ID's in `ssbid`, and two auxiliary variable for balancing: `mean_slope` and `abi`. The stratification variable we need to create based on `seksjon_kode` and `sone_kode`. We also need to create an `area` variable based on the sum of `r_hav` and `r_ferskvann`. 
+
+```{r tbl-sf}
+#| include: true
+pop |>
+  slice_head(n = 10) |>
+  DT::datatable()
+```
+
+```{r datacheck}
+#| eval: false
+#| include: false
+summary(pop$r_ferskvann)
+summary(pop$r_hav)
+wet_small <- small(pop)
+dotchart(wet_small$r_ferskvann)
+dotchart(wet_small$r_hav)
+dotchart(wet_small$centroid_x)
+dotchart(wet_small$centroid_y)
+dotchart(wet_small$ost)
+dotchart(wet_small$nord)
+
+dotchart(wet_small$mean_slope)
+dotchart(wet_small$abi)
+
+```
+
+```{r makeVars}
+#| eval: true
+
+pop <- pop |>
+  rename(Northing = nord,
+         Easting = ost) |>
+  mutate(area = 100 - r_hav - r_ferskvann,
+         stratum = case_when(
+           seksjon_kode %in% c("6SE-3", "6SE-4", "6SE-5") & sone_kode %in% c("6SO-1", "6SO-2") ~  1,
+           seksjon_kode %in% c("6SE-2") & sone_kode %in% c("6SO-1", "6SO-2") ~  2,
+           seksjon_kode %in% c("6SE-1") & sone_kode %in% c("6SO-1", "6SO-2") ~  3,
+           seksjon_kode %in% c("6SE-1") & sone_kode %in% c("6SO-3", "6SO-4", "6SO-5") ~  4,
+           seksjon_kode %in% c("6SE-2") & sone_kode %in% c("6SO-3") ~  5,
+           seksjon_kode %in% c("6SE-2") & sone_kode %in% c("6SO-4", "6SO-5") ~  6,
+           seksjon_kode %in% c("6SE-3", "6SE-4", "6SE-5") & sone_kode %in% c("6SO-3") ~  7,
+           seksjon_kode %in% c("6SE-3", "6SE-4") & sone_kode %in% c("6SO-4", "6SO-5") ~  8,
+           seksjon_kode %in% c("6SE-5") & sone_kode %in% c("6SO-4", "6SO-5") ~  9,
+           .default = 99
+           ))
+
+```
+
+There is one or a few cases of negative areas. I will just set those tpo be zeros.
+```{r}
+#| eval: true
+# min(pop$area) #negative
+# max(pop$area) #OK
+pop <- pop |>
+  mutate(area = case_when(
+    area < 0 ~ 0,
+    .default = area
+  ))
+```
+
+
+There is a problem with NAs in the bioclimatic zones and regions:
+```{r tbl-n}
+#| eval: true
+#| tbl-cap: 'Number of population units (SSB500 squares) in each strata.'
+pop |>
+  group_by(stratum) |>
+  summarise(n = n())
+```
+
+We have `r nrow(pop[pop$stratum == 99,])` population units that we don't know the strata for. 
+Let's see if there is a pattern to where these units are found. 
+The first check below tells us that stratum 99 is a consequence of NA's on both the sone and section. 
+```{r}
+#| eval: true
+pop |>
+  filter(stratum == 99) |>
+  tidyr::unite(combo, c(seksjon_kode, sone_kode)) |>
+  distinct(combo)
+```
+
+Then @fig-dots tells us that the population units where we lack data on bioclimatic regions are mainly along the coast (a lot of ocean), 
+but also close to freshwater. 
+This is a problem, as it will lead to undersampling of areas close to water.
+However, we cannot solve this now, and rumors have it that the bioclimatic zone and regions dataset will get updated very soon, 
+so then we can also update (rerun) the sampling pipeline.
+
+The same problem seems to also be for `abi`, that we have false zero values along the coast or along water. 
+We know this from visual checks, but also from @fig-dots where we see that `abi` is always zero, 
+at the same time that `r_bebygd_samf` is not.
+
+```{r fig-dots}
+#| eval: true
+#| message: false
+#| fig-cap: 'Distrbutions for selected variables for whick we lack data on stratum (bioclimatic region).' 
+pop |>
+  filter(stratum == 99) |>
+  pivot_longer(cols = c(r_hav, r_ferskvann, abi, mean_slope, r_bebygd_samf, r_sno_isbre)) |>
+  ggplot()+
+  geom_dotplot(aes(value))+
+  facet_wrap(.~name)+
+  theme_bw()
+
+```
+
+## Sample
+First we subset the columns, and run a test on 10 000 rows.
+```{r stripdata}
+#| eval: true
+
+pop <- pop |>
+  select(ssbid, Easting, Northing, area, abi, mean_slope, stratum) |>
+    filter(stratum != 99)
+
+wet_small <- small()
+```
+
+```{r test}
+#| eval: true
+testRun <- spaceR::nested_balanced(
+  samplingFrame = wet_small,
+  n_seq = seq(50, 20, -10),
+  id_col = "ssbid",
+  stratum_col = "stratum",
+  easting_col = "Easting",
+  northing_col = "Northing",
+  area_col = "area",
+  xbal_formula = ~ abi + mean_slope -1,
+  exclude_offset = 1e+09,
+  return_dataframe = TRUE,
+  out_name = "testSample"
+)
+```
+
+
+The test went fine, with no errors. 
+
+The returned object `testRun` which is a list of lists. 
+```{r testnames}
+#| eval: true
+names(testRun)
+```
+
+Then we try the same on the entire sampling population
+
+```{r sampleAll}
+#| eval: false
+tictoc::tic()
+wetlands <- spaceR::nested_balanced(
+  samplingFrame = pop,
+  n_seq = seq(5000, 100, -10),
+  id_col = "ssbid",
+  stratum_col = "stratum",
+  easting_col = "Easting",
+  northing_col = "Northing",
+  area_col = "area",
+  xbal_formula = ~ abi + mean_slope -1,
+  exclude_offset = 1e+09,
+  return_dataframe = FALSE,
+  out_name = "wetlands1",
+)
+tictoc::toc()
+# 1012.165 sec elapsed
+#saveRDS(wetlands, "data/wetlands.rds")
+```
+
+
+
+Now I will combine all these lists of lists into something more manageble, like a dataframe.
+
+```{r combinedata}
+sample_names <- names(wetlands)
+sample_sizes <- gsub("wetlands1_", "", sample_names) |> as.numeric()
+all_ids <- wetlands$wetlands1_5000$ID
+
+# Initialize empty matrix with NA
+prob_matrix <- matrix(NA_real_, nrow = length(all_ids), ncol = length(sample_names),
+                      dimnames = list(all_ids, sample_sizes))
+
+# Fill in probabilities where IDs occur
+for (i in seq_along(wetlands)) {
+  w <- wetlands[[i]]
+  id_match <- match(w$ID, all_ids)
+  prob_matrix[id_match, i] <- w$prob
+}
+
+# create column with IDs
+prob_matrix <-  prob_matrix |>
+  as.data.frame() |>
+  rownames_to_column("ssbid") |>
+  as_tibble()
+
+# append aux data
+prob_matrix <- pop |>
+  right_join(prob_matrix, by = join_by(ssbid))
+
+head(prob_matrix)
+```
+
+In the code below I check that the proportion stay stable after the initial pps, and the do. Compared to the full population,
+we have reduced the proportion of sampling units that have less then 100 or 50% or area by approx. 9 and 71%, respectively.
+
+```{r}
+
+
+prob_matrix |>
+  select(ssbid, area, "5000", "3000", "100") |>
+  pivot_longer(cols = c("5000", "3000", "100"),
+               values_drop_na = TRUE) |>
+  group_by(name) |>
+  summarise(prop_below_100 = mean(area < 100, na.rm=T),
+            prop_below_50 = mean(area < 50, na.rm=T)) |>
+  rbind(
+    pop |>
+  summarise(prop_below_100 = mean(area < 100, na.rm=T),
+            prop_below_50 = mean(area < 50, na.rm=T)) |>
+    add_column("name" = "Population", .before = 1)
+  ) |>
+  kable()
+```
+![](img/props.jpg)
+
+## Evaluate balance
+
+Here we should ideally evaluate the balance of the sample against a simple random sample, for example using `BalancedSampling::sb()`, but we don't have time to to this now unfortunately.
+
+## Write to db
+
+### Setup sample schema
+This part sets up the schema, and is only done ones.
+
+```{r}
+schema_ur <- "CREATE SCHEMA samples"
+dbSendQuery(con, schema_ur) 
+```
+Write queries to grant read only access to all.
+```{r}
+priv <- "ALTER DEFAULT PRIVILEGES IN SCHEMA samples GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_ro"
+priv2 <- "ALTER DEFAULT PRIVILEGES IN SCHEMA samples GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_rw"
+priv3 <- "ALTER DEFAULT PRIVILEGES IN SCHEMA samples GRANT SELECT ON TABLES TO ag_pgsql_ano_moduler_admin"
+priv4 <- "GRANT USAGE ON SCHEMA samples  TO ag_pgsql_ano_moduler_admin"
+priv5 <- "GRANT USAGE ON SCHEMA samples  TO ag_pgsql_ano_moduler_rw"
+priv6 <- "GRANT USAGE ON SCHEMA samples  TO ag_pgsql_ano_moduler_ro"
+
+dbSendStatement(con, priv)
+dbSendStatement(con, priv2)
+dbSendStatement(con, priv3)
+dbSendStatement(con, priv4)
+dbSendStatement(con, priv5)
+dbSendStatement(con, priv6)
+```
+
+### Prepare and export
+
+```{r}
+myIDs <- uuid::UUIDgenerate(n = nrow(prob_matrix))
+wetlands_db <- prob_matrix |>
+  mutate(wetlands_sample_unit_id = myIDs,
+         .after = 1) |>
+  select(-Easting, -Northing, -area, -abi, -mean_slope, -stratum)
+
+write_csv(wetlands_db, "data/wetland_samples.csv")
+```
+
+
+```{r}
+#| code-fold: true
+q1 <- 'create table samples.vaatmark_2025 (
+wetlands_sample_unit_ID varchar(50) PRIMARY KEY,
+ssbid varchar(50),
+  "5000" numeric(24,23),
+  "4990" numeric(24,23),
+  "4980" numeric(24,23),
+  "4970" numeric(24,23),
+  "4960" numeric(24,23),
+  "4950" numeric(24,23),
+  "4940" numeric(24,23),
+  "4930" numeric(24,23),
+  "4920" numeric(24,23),
+  "4910" numeric(24,23),
+  "4900" numeric(24,23),
+  "4890" numeric(24,23),
+  "4880" numeric(24,23),
+  "4870" numeric(24,23),
+  "4860" numeric(24,23),
+  "4850" numeric(24,23),
+  "4840" numeric(24,23),
+  "4830" numeric(24,23),
+  "4820" numeric(24,23),
+  "4810" numeric(24,23),
+  "4800" numeric(24,23),
+  "4790" numeric(24,23),
+  "4780" numeric(24,23),
+  "4770" numeric(24,23),
+  "4760" numeric(24,23),
+  "4750" numeric(24,23),
+  "4740" numeric(24,23),
+  "4730" numeric(24,23),
+  "4720" numeric(24,23),
+  "4710" numeric(24,23),
+  "4700" numeric(24,23),
+  "4690" numeric(24,23),
+  "4680" numeric(24,23),
+  "4670" numeric(24,23),
+  "4660" numeric(24,23),
+  "4650" numeric(24,23),
+  "4640" numeric(24,23),
+  "4630" numeric(24,23),
+  "4620" numeric(24,23),
+  "4610" numeric(24,23),
+  "4600" numeric(24,23),
+  "4590" numeric(24,23),
+  "4580" numeric(24,23),
+  "4570" numeric(24,23),
+  "4560" numeric(24,23),
+  "4550" numeric(24,23),
+  "4540" numeric(24,23),
+  "4530" numeric(24,23),
+  "4520" numeric(24,23),
+  "4510" numeric(24,23),
+  "4500" numeric(24,23),
+  "4490" numeric(24,23),
+  "4480" numeric(24,23),
+  "4470" numeric(24,23),
+  "4460" numeric(24,23),
+  "4450" numeric(24,23),
+  "4440" numeric(24,23),
+  "4430" numeric(24,23),
+  "4420" numeric(24,23),
+  "4410" numeric(24,23),
+  "4400" numeric(24,23),
+  "4390" numeric(24,23),
+  "4380" numeric(24,23),
+  "4370" numeric(24,23),
+  "4360" numeric(24,23),
+  "4350" numeric(24,23),
+  "4340" numeric(24,23),
+  "4330" numeric(24,23),
+  "4320" numeric(24,23),
+  "4310" numeric(24,23),
+  "4300" numeric(24,23),
+  "4290" numeric(24,23),
+  "4280" numeric(24,23),
+  "4270" numeric(24,23),
+  "4260" numeric(24,23),
+  "4250" numeric(24,23),
+  "4240" numeric(24,23),
+  "4230" numeric(24,23),
+  "4220" numeric(24,23),
+  "4210" numeric(24,23),
+  "4200" numeric(24,23),
+  "4190" numeric(24,23),
+  "4180" numeric(24,23),
+  "4170" numeric(24,23),
+  "4160" numeric(24,23),
+  "4150" numeric(24,23),
+  "4140" numeric(24,23),
+  "4130" numeric(24,23),
+  "4120" numeric(24,23),
+  "4110" numeric(24,23),
+  "4100" numeric(24,23),
+  "4090" numeric(24,23),
+  "4080" numeric(24,23),
+  "4070" numeric(24,23),
+  "4060" numeric(24,23),
+  "4050" numeric(24,23),
+  "4040" numeric(24,23),
+  "4030" numeric(24,23),
+  "4020" numeric(24,23),
+  "4010" numeric(24,23),
+  "4000" numeric(24,23),
+  "3990" numeric(24,23),
+  "3980" numeric(24,23),
+  "3970" numeric(24,23),
+  "3960" numeric(24,23),
+  "3950" numeric(24,23),
+  "3940" numeric(24,23),
+  "3930" numeric(24,23),
+  "3920" numeric(24,23),
+  "3910" numeric(24,23),
+  "3900" numeric(24,23),
+  "3890" numeric(24,23),
+  "3880" numeric(24,23),
+  "3870" numeric(24,23),
+  "3860" numeric(24,23),
+  "3850" numeric(24,23),
+  "3840" numeric(24,23),
+  "3830" numeric(24,23),
+  "3820" numeric(24,23),
+  "3810" numeric(24,23),
+  "3800" numeric(24,23),
+  "3790" numeric(24,23),
+  "3780" numeric(24,23),
+  "3770" numeric(24,23),
+  "3760" numeric(24,23),
+  "3750" numeric(24,23),
+  "3740" numeric(24,23),
+  "3730" numeric(24,23),
+  "3720" numeric(24,23),
+  "3710" numeric(24,23),
+  "3700" numeric(24,23),
+  "3690" numeric(24,23),
+  "3680" numeric(24,23),
+  "3670" numeric(24,23),
+  "3660" numeric(24,23),
+  "3650" numeric(24,23),
+  "3640" numeric(24,23),
+  "3630" numeric(24,23),
+  "3620" numeric(24,23),
+  "3610" numeric(24,23),
+  "3600" numeric(24,23),
+  "3590" numeric(24,23),
+  "3580" numeric(24,23),
+  "3570" numeric(24,23),
+  "3560" numeric(24,23),
+  "3550" numeric(24,23),
+  "3540" numeric(24,23),
+  "3530" numeric(24,23),
+  "3520" numeric(24,23),
+  "3510" numeric(24,23),
+  "3500" numeric(24,23),
+  "3490" numeric(24,23),
+  "3480" numeric(24,23),
+  "3470" numeric(24,23),
+  "3460" numeric(24,23),
+  "3450" numeric(24,23),
+  "3440" numeric(24,23),
+  "3430" numeric(24,23),
+  "3420" numeric(24,23),
+  "3410" numeric(24,23),
+  "3400" numeric(24,23),
+  "3390" numeric(24,23),
+  "3380" numeric(24,23),
+  "3370" numeric(24,23),
+  "3360" numeric(24,23),
+  "3350" numeric(24,23),
+  "3340" numeric(24,23),
+  "3330" numeric(24,23),
+  "3320" numeric(24,23),
+  "3310" numeric(24,23),
+  "3300" numeric(24,23),
+  "3290" numeric(24,23),
+  "3280" numeric(24,23),
+  "3270" numeric(24,23),
+  "3260" numeric(24,23),
+  "3250" numeric(24,23),
+  "3240" numeric(24,23),
+  "3230" numeric(24,23),
+  "3220" numeric(24,23),
+  "3210" numeric(24,23),
+  "3200" numeric(24,23),
+  "3190" numeric(24,23),
+  "3180" numeric(24,23),
+  "3170" numeric(24,23),
+  "3160" numeric(24,23),
+  "3150" numeric(24,23),
+  "3140" numeric(24,23),
+  "3130" numeric(24,23),
+  "3120" numeric(24,23),
+  "3110" numeric(24,23),
+  "3100" numeric(24,23),
+  "3090" numeric(24,23),
+  "3080" numeric(24,23),
+  "3070" numeric(24,23),
+  "3060" numeric(24,23),
+  "3050" numeric(24,23),
+  "3040" numeric(24,23),
+  "3030" numeric(24,23),
+  "3020" numeric(24,23),
+  "3010" numeric(24,23),
+  "3000" numeric(24,23),
+  "2990" numeric(24,23),
+  "2980" numeric(24,23),
+  "2970" numeric(24,23),
+  "2960" numeric(24,23),
+  "2950" numeric(24,23),
+  "2940" numeric(24,23),
+  "2930" numeric(24,23),
+  "2920" numeric(24,23),
+  "2910" numeric(24,23),
+  "2900" numeric(24,23),
+  "2890" numeric(24,23),
+  "2880" numeric(24,23),
+  "2870" numeric(24,23),
+  "2860" numeric(24,23),
+  "2850" numeric(24,23),
+  "2840" numeric(24,23),
+  "2830" numeric(24,23),
+  "2820" numeric(24,23),
+  "2810" numeric(24,23),
+  "2800" numeric(24,23),
+  "2790" numeric(24,23),
+  "2780" numeric(24,23),
+  "2770" numeric(24,23),
+  "2760" numeric(24,23),
+  "2750" numeric(24,23),
+  "2740" numeric(24,23),
+  "2730" numeric(24,23),
+  "2720" numeric(24,23),
+  "2710" numeric(24,23),
+  "2700" numeric(24,23),
+  "2690" numeric(24,23),
+  "2680" numeric(24,23),
+  "2670" numeric(24,23),
+  "2660" numeric(24,23),
+  "2650" numeric(24,23),
+  "2640" numeric(24,23),
+  "2630" numeric(24,23),
+  "2620" numeric(24,23),
+  "2610" numeric(24,23),
+  "2600" numeric(24,23),
+  "2590" numeric(24,23),
+  "2580" numeric(24,23),
+  "2570" numeric(24,23),
+  "2560" numeric(24,23),
+  "2550" numeric(24,23),
+  "2540" numeric(24,23),
+  "2530" numeric(24,23),
+  "2520" numeric(24,23),
+  "2510" numeric(24,23),
+  "2500" numeric(24,23),
+  "2490" numeric(24,23),
+  "2480" numeric(24,23),
+  "2470" numeric(24,23),
+  "2460" numeric(24,23),
+  "2450" numeric(24,23),
+  "2440" numeric(24,23),
+  "2430" numeric(24,23),
+  "2420" numeric(24,23),
+  "2410" numeric(24,23),
+  "2400" numeric(24,23),
+  "2390" numeric(24,23),
+  "2380" numeric(24,23),
+  "2370" numeric(24,23),
+  "2360" numeric(24,23),
+  "2350" numeric(24,23),
+  "2340" numeric(24,23),
+  "2330" numeric(24,23),
+  "2320" numeric(24,23),
+  "2310" numeric(24,23),
+  "2300" numeric(24,23),
+  "2290" numeric(24,23),
+  "2280" numeric(24,23),
+  "2270" numeric(24,23),
+  "2260" numeric(24,23),
+  "2250" numeric(24,23),
+  "2240" numeric(24,23),
+  "2230" numeric(24,23),
+  "2220" numeric(24,23),
+  "2210" numeric(24,23),
+  "2200" numeric(24,23),
+  "2190" numeric(24,23),
+  "2180" numeric(24,23),
+  "2170" numeric(24,23),
+  "2160" numeric(24,23),
+  "2150" numeric(24,23),
+  "2140" numeric(24,23),
+  "2130" numeric(24,23),
+  "2120" numeric(24,23),
+  "2110" numeric(24,23),
+  "2100" numeric(24,23),
+  "2090" numeric(24,23),
+  "2080" numeric(24,23),
+  "2070" numeric(24,23),
+  "2060" numeric(24,23),
+  "2050" numeric(24,23),
+  "2040" numeric(24,23),
+  "2030" numeric(24,23),
+  "2020" numeric(24,23),
+  "2010" numeric(24,23),
+  "2000" numeric(24,23),
+  "1990" numeric(24,23),
+  "1980" numeric(24,23),
+  "1970" numeric(24,23),
+  "1960" numeric(24,23),
+  "1950" numeric(24,23),
+  "1940" numeric(24,23),
+  "1930" numeric(24,23),
+  "1920" numeric(24,23),
+  "1910" numeric(24,23),
+  "1900" numeric(24,23),
+  "1890" numeric(24,23),
+  "1880" numeric(24,23),
+  "1870" numeric(24,23),
+  "1860" numeric(24,23),
+  "1850" numeric(24,23),
+  "1840" numeric(24,23),
+  "1830" numeric(24,23),
+  "1820" numeric(24,23),
+  "1810" numeric(24,23),
+  "1800" numeric(24,23),
+  "1790" numeric(24,23),
+  "1780" numeric(24,23),
+  "1770" numeric(24,23),
+  "1760" numeric(24,23),
+  "1750" numeric(24,23),
+  "1740" numeric(24,23),
+  "1730" numeric(24,23),
+  "1720" numeric(24,23),
+  "1710" numeric(24,23),
+  "1700" numeric(24,23),
+  "1690" numeric(24,23),
+  "1680" numeric(24,23),
+  "1670" numeric(24,23),
+  "1660" numeric(24,23),
+  "1650" numeric(24,23),
+  "1640" numeric(24,23),
+  "1630" numeric(24,23),
+  "1620" numeric(24,23),
+  "1610" numeric(24,23),
+  "1600" numeric(24,23),
+  "1590" numeric(24,23),
+  "1580" numeric(24,23),
+  "1570" numeric(24,23),
+  "1560" numeric(24,23),
+  "1550" numeric(24,23),
+  "1540" numeric(24,23),
+  "1530" numeric(24,23),
+  "1520" numeric(24,23),
+  "1510" numeric(24,23),
+  "1500" numeric(24,23),
+  "1490" numeric(24,23),
+  "1480" numeric(24,23),
+  "1470" numeric(24,23),
+  "1460" numeric(24,23),
+  "1450" numeric(24,23),
+  "1440" numeric(24,23),
+  "1430" numeric(24,23),
+  "1420" numeric(24,23),
+  "1410" numeric(24,23),
+  "1400" numeric(24,23),
+  "1390" numeric(24,23),
+  "1380" numeric(24,23),
+  "1370" numeric(24,23),
+  "1360" numeric(24,23),
+  "1350" numeric(24,23),
+  "1340" numeric(24,23),
+  "1330" numeric(24,23),
+  "1320" numeric(24,23),
+  "1310" numeric(24,23),
+  "1300" numeric(24,23),
+  "1290" numeric(24,23),
+  "1280" numeric(24,23),
+  "1270" numeric(24,23),
+  "1260" numeric(24,23),
+  "1250" numeric(24,23),
+  "1240" numeric(24,23),
+  "1230" numeric(24,23),
+  "1220" numeric(24,23),
+  "1210" numeric(24,23),
+  "1200" numeric(24,23),
+  "1190" numeric(24,23),
+  "1180" numeric(24,23),
+  "1170" numeric(24,23),
+  "1160" numeric(24,23),
+  "1150" numeric(24,23),
+  "1140" numeric(24,23),
+  "1130" numeric(24,23),
+  "1120" numeric(24,23),
+  "1110" numeric(24,23),
+  "1100" numeric(24,23),
+  "1090" numeric(24,23),
+  "1080" numeric(24,23),
+  "1070" numeric(24,23),
+  "1060" numeric(24,23),
+  "1050" numeric(24,23),
+  "1040" numeric(24,23),
+  "1030" numeric(24,23),
+  "1020" numeric(24,23),
+  "1010" numeric(24,23),
+  "1000" numeric(24,23),
+   "990" numeric(24,23),
+   "980" numeric(24,23),
+   "970" numeric(24,23),
+   "960" numeric(24,23),
+   "950" numeric(24,23),
+   "940" numeric(24,23),
+   "930" numeric(24,23),
+   "920" numeric(24,23),
+   "910" numeric(24,23),
+   "900" numeric(24,23),
+   "890" numeric(24,23),
+   "880" numeric(24,23),
+   "870" numeric(24,23),
+   "860" numeric(24,23),
+   "850" numeric(24,23),
+   "840" numeric(24,23),
+   "830" numeric(24,23),
+   "820" numeric(24,23),
+   "810" numeric(24,23),
+   "800" numeric(24,23),
+   "790" numeric(24,23),
+   "780" numeric(24,23),
+   "770" numeric(24,23),
+   "760" numeric(24,23),
+   "750" numeric(24,23),
+   "740" numeric(24,23),
+   "730" numeric(24,23),
+   "720" numeric(24,23),
+   "710" numeric(24,23),
+   "700" numeric(24,23),
+   "690" numeric(24,23),
+   "680" numeric(24,23),
+   "670" numeric(24,23),
+   "660" numeric(24,23),
+   "650" numeric(24,23),
+   "640" numeric(24,23),
+   "630" numeric(24,23),
+   "620" numeric(24,23),
+   "610" numeric(24,23),
+   "600" numeric(24,23),
+   "590" numeric(24,23),
+   "580" numeric(24,23),
+   "570" numeric(24,23),
+   "560" numeric(24,23),
+   "550" numeric(24,23),
+   "540" numeric(24,23),
+   "530" numeric(24,23),
+   "520" numeric(24,23),
+   "510" numeric(24,23),
+   "500" numeric(24,23),
+   "490" numeric(24,23),
+   "480" numeric(24,23),
+   "470" numeric(24,23),
+   "460" numeric(24,23),
+   "450" numeric(24,23),
+   "440" numeric(24,23),
+   "430" numeric(24,23),
+   "420" numeric(24,23),
+   "410" numeric(24,23),
+   "400" numeric(24,23),
+   "390" numeric(24,23),
+   "380" numeric(24,23),
+   "370" numeric(24,23),
+   "360" numeric(24,23),
+   "350" numeric(24,23),
+   "340" numeric(24,23),
+   "330" numeric(24,23),
+   "320" numeric(24,23),
+   "310" numeric(24,23),
+   "300" numeric(24,23),
+   "290" numeric(24,23),
+   "280" numeric(24,23),
+   "270" numeric(24,23),
+   "260" numeric(24,23),
+   "250" numeric(24,23),
+   "240" numeric(24,23),
+   "230" numeric(24,23),
+   "220" numeric(24,23),
+   "210" numeric(24,23),
+   "200" numeric(24,23),
+   "190" numeric(24,23),
+   "180" numeric(24,23),
+   "170" numeric(24,23),
+   "160" numeric(24,23),
+   "150" numeric(24,23),
+   "140" numeric(24,23),
+   "130" numeric(24,23),
+   "120" numeric(24,23),
+   "110" numeric(24,23),
+   "100" numeric(24,23),
+  CONSTRAINT fk_vaatmark_ssbid
+    FOREIGN KEY (ssbid)
+      REFERENCES ssb_grids.ssb_500 (ssbid)
+    DEFERRABLE INITIALLY DEFERRED
+);'
+
+
+```
+
+```{r}
+# indices makes the database work faster. It should be added to all tables that are looked up frequently
+q2 <- "create index on samples.vaatmark_2025 using btree(ssbid);"
+q3 <- "create index on samples.vaatmark_2025 using btree(wetlands_sample_unit_ID);"
+```
+
+
+```{r}
+# sending the queries:
+dbSendStatement(con, q1)
+dbSendStatement(con, q2)
+dbSendStatement(con, q3)
+```
+
+```{r}
+write_sf(wetlands_db, dsn = con,
+         layer = Id(schema = "samples", table = "vaatmark_2025"), 
+         append = T)
+```
+
+Testing that the data is there:
+
+```{r}
+#| eval: true
+dplyr::tbl(con, dbplyr::in_schema("samples", "vaatmark_2025")) |>
+  #dplyr::slice(n = 8) |>
+  select(ssbid, "5000", "3000", "100")
+```
+
+
+

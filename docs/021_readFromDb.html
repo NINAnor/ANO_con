@@ -97,7 +97,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script>
+}</script><link href="site_libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<script src="site_libs/htmlwidgets-1.6.1/htmlwidgets.js"></script><script src="site_libs/viz-1.8.2/viz.js"></script><link href="site_libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet">
+<script src="site_libs/grViz-binding-1.0.9/grViz.js"></script>
 </head>
 <body class="nav-sidebar floating">
 
@@ -237,6 +239,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Simulation</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./031_wetland_sample.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Wetland samples</span></span></a>
+  </div>
+</li>
       </ul>
 </li>
     </ul>
@@ -244,7 +252,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+<li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">5.1</span> Overview</a></li>
+  <li>
+<a href="#collect-and-join-data" id="toc-collect-and-join-data" class="nav-link" data-scroll-target="#collect-and-join-data"><span class="header-section-number">5.2</span> Collect and join data</a>
+  <ul class="collapse">
+<li><a href="#collect-bioclimatic-dataset" id="toc-collect-bioclimatic-dataset" class="nav-link" data-scroll-target="#collect-bioclimatic-dataset"><span class="header-section-number">5.2.1</span> Collect bioclimatic dataset</a></li>
+  </ul>
+</li>
+  </ul><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/021_readFromDb.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./021_readFromDb.html">Read data from database</a></li><li class="breadcrumb-item"><a href="./021_readFromDb.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Read data from the database</span></a></li></ol></nav><div class="quarto-title">
@@ -264,7 +282,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   
 
 
-</header><p>Now that we have added data to the database, we can also read it back.</p>
+</header><section id="overview" class="level2" data-number="5.1"><h2 data-number="5.1" class="anchored" data-anchor-id="overview">
+<span class="header-section-number">5.1</span> Overview</h2>
+<p>Now that we have added data to the database, we can also read it back.</p>
 <div class="cell">
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coast_sample</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/tbl.html">tbl</a></span><span class="op">(</span><span class="va">con</span>, <span class="fu">dbplyr</span><span class="fu">::</span><span class="fu"><a href="https://dbplyr.tidyverse.org/reference/in_schema.html">in_schema</a></span><span class="op">(</span><span class="st">"sampling_frames"</span>, <span class="st">"samplingframe_havstrand_2024"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">coast_sample</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -286,9 +306,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 # ℹ more rows</code></pre>
 </div>
 </div>
+<p>Same for the wetlands samples:</p>
+<div class="cell">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">vaatmark_2025</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/tbl.html">tbl</a></span><span class="op">(</span><span class="va">con</span>, <span class="fu">dbplyr</span><span class="fu">::</span><span class="fu"><a href="https://dbplyr.tidyverse.org/reference/in_schema.html">in_schema</a></span><span class="op">(</span><span class="st">"samples"</span>, <span class="st">"vaatmark_2025"</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section><section id="collect-and-join-data" class="level2" data-number="5.2"><h2 data-number="5.2" class="anchored" data-anchor-id="collect-and-join-data">
+<span class="header-section-number">5.2</span> Collect and join data</h2>
 <p>This data only exists remotely still. We need to use collect to bring it down to our local machine. At the same time we can use dplyr pipelines to filter the data.</p>
 <div class="cell">
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coast_sample</span> <span class="op">|&gt;</span></span>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">coast_sample</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu">row_number</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_min</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">8</span>, order_by <span class="op">=</span> <span class="va">id</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html">collect</a></span><span class="op">(</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -309,11 +335,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>We can also get the geometries, which are stored in the foreign table. To do this we can use the dm package.</p>
 <p>We first create a dm object from the connection object. Then we can view data easily.</p>
 <div class="cell">
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">&lt;-</span> <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_from_con.html">dm_from_con</a></span><span class="op">(</span><span class="va">con</span>,</span>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">&lt;-</span> <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_from_con.html">dm_from_con</a></span><span class="op">(</span><span class="va">con</span>,</span>
 <span>  table_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
 <span>    <span class="st">"ssb_500"</span>,</span>
-<span>    <span class="st">"samplingframe_havstrand_2024"</span>,</span>
-<span>    <span class="st">"samplingframe_vaatmark_2025"</span></span>
+<span>    <span class="st">"vaatmark_2025"</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  learn_keys <span class="op">=</span> <span class="cn">T</span></span>
 <span><span class="op">)</span></span>
@@ -322,52 +347,120 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>── Table source ────────────────────────────────────────────────────────────────
 src:  postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]
 ── Metadata ────────────────────────────────────────────────────────────────────
-Tables: `samplingframe_havstrand_2024`, `samplingframe_vaatmark_2025`, `ssb_500`
-Columns: 21
-Primary keys: 3
-Foreign keys: 2</code></pre>
+Tables: `ssb_500`, `vaatmark_2025`
+Columns: 495
+Primary keys: 2
+Foreign keys: 1</code></pre>
 </div>
 </div>
 <p>DM learns the relationships between tables by reading the constraints. First I can check that the amount of constraints is good.</p>
 <div class="cell">
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">dm_get_all_fks</span><span class="op">(</span><span class="va">dm</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_get_all_fks.html">dm_get_all_fks</a></span><span class="op">(</span><span class="va">dm</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 5
+  child_table   child_fk_cols parent_table parent_key_cols on_delete
+  &lt;chr&gt;         &lt;keys&gt;        &lt;chr&gt;        &lt;keys&gt;          &lt;chr&gt;    
+1 vaatmark_2025 ssbid         ssb_500      ssbid           no_action</code></pre>
+</div>
 </div>
 <div class="cell">
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_set_colors.html">dm_set_colors</a></span><span class="op">(</span></span>
-<span>    darkgreen <span class="op">=</span> <span class="va">samplingframe_havstrand_2024</span>, </span>
+<span>    darkgreen <span class="op">=</span> <span class="va">vaatmark_2025</span>, </span>
 <span>    darkblue <span class="op">=</span> <span class="va">ssb_500</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_draw.html">dm_draw</a></span><span class="op">(</span><span class="op">)</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="grViz html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-a7119ed0b4bba00e7f8a" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-a7119ed0b4bba00e7f8a">{"x":{"diagram":"#data_model\ndigraph {\ngraph [rankdir=LR tooltip=\"Data Model\" ]\n\nnode [margin=0 fontcolor = \"#444444\" ]\n\nedge [color = \"#555555\", arrowsize = 1, ]\n\npack=true\npackmode= \"node\"\n\n  \"ssb_500\" [id = \"ssb_500\", label = <<TABLE ALIGN=\"LEFT\" BORDER=\"1\" CELLBORDER=\"0\" CELLSPACING=\"0\" COLOR=\"#00005CAA\">\n    <TR>\n      <TD COLSPAN=\"1\" BGCOLOR=\"#00008BFF\" BORDER=\"0\"><FONT COLOR=\"#FFFFFF\">ssb_500<\/FONT>\n<\/TD>\n    <\/TR>\n    <TR>\n      <TD ALIGN=\"LEFT\" BGCOLOR=\"#CCCCE7FF\" PORT=\"ssbid\"><U>ssbid<\/U><\/TD>\n    <\/TR>\n  <\/TABLE>>, shape = \"plaintext\"] \n\n  \"vaatmark_2025\" [id = \"vaatmark_2025\", label = <<TABLE ALIGN=\"LEFT\" BORDER=\"1\" CELLBORDER=\"0\" CELLSPACING=\"0\" COLOR=\"#004200AA\">\n    <TR>\n      <TD COLSPAN=\"1\" BGCOLOR=\"#006400FF\" BORDER=\"0\"><FONT COLOR=\"#FFFFFF\">vaatmark_2025<\/FONT>\n<\/TD>\n    <\/TR>\n    <TR>\n      <TD ALIGN=\"LEFT\" BGCOLOR=\"#CCE0CCFF\" PORT=\"wetlands_sample_unit_id\"><U>wetlands_sample_unit_id<\/U><\/TD>\n    <\/TR>\n    <TR>\n      <TD ALIGN=\"LEFT\" BGCOLOR=\"#CCE0CCFF\" PORT=\"ssbid\">ssbid<\/TD>\n    <\/TR>\n  <\/TABLE>>, shape = \"plaintext\"] \n\n\"vaatmark_2025\":\"ssbid\"->\"ssb_500\":\"ssbid\" [id=\"vaatmark_2025_1\"]\n}","config":{"engine":null,"options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
-<p><img src="img/screen_db.png" class="img-fluid"></p>
-<p>Then we can read the data back, including the geometries from the parent table.</p>
+</div>
+<p>Then we can read the data back, including the geometries from the parent table. The geometries are stores (or at least returned) as hex-encoded WKB/EWKB, and we need to convert then to sfc first, before we can turn them into sf.</p>
 <div class="cell">
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_flatten_to_tbl.html">dm_flatten_to_tbl</a></span><span class="op">(</span><span class="va">samplingframe_havstrand_2024</span>,</span>
-<span>                    .recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># Source:   SQL [?? x 3]
-# Database: postgres  [anders.kolstad@t2lippgsql03:5432/ano_moduler]
-   havstrand_id                         ssbid          geom                     
-   &lt;chr&gt;                                &lt;chr&gt;          &lt;pq_gmtry&gt;               
- 1 4de8478a-d2c8-4730-83dd-12ac25d4fa07 22495006594500 0103000020E9640000010000…
- 2 bc9a80d7-c434-47e9-a89a-7f7a3f59f625 22495006595000 0103000020E9640000010000…
- 3 ce7166b6-cb49-499a-a99f-9da0e274abd8 22495006595500 0103000020E9640000010000…
- 4 e56036c5-7fe4-461a-a022-44367119acac 22495006596000 0103000020E9640000010000…
- 5 1f592dac-2fb7-49e5-9aa9-fc0cf9e9184f 22490006596500 0103000020E9640000010000…
- 6 20394fe8-305c-4c39-add9-f013295ca932 22495006596500 0103000020E9640000010000…
- 7 3d3ffe94-0400-4c1c-9a0f-62f4d6c29c4d 22490006597000 0103000020E9640000010000…
- 8 4d199401-dd20-48ef-b6c6-8de00b9eb9a4 22495006597000 0103000020E9640000010000…
- 9 a34df6f4-8f92-4976-b7ae-94b176fa73b1 22625006542000 0103000020E9640000010000…
-10 89e8296e-e076-4519-b916-60c5ef922292 22625006542500 0103000020E9640000010000…
-# ℹ more rows</code></pre>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm2</span> <span class="op">&lt;-</span> <span class="va">dm</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dm</span><span class="fu">::</span><span class="fu"><a href="https://dm.cynkra.com/reference/dm_flatten_to_tbl.html">dm_flatten_to_tbl</a></span><span class="op">(</span><span class="va">vaatmark_2025</span>,</span>
+<span>                    .recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>geom_wkb <span class="op">=</span> <span class="fu">dbplyr</span><span class="fu">::</span><span class="fu"><a href="https://dbplyr.tidyverse.org/reference/sql.html">sql</a></span><span class="op">(</span><span class="st">"ST_AsBinary(geom)"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">geom</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">collect</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>geom <span class="op">=</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sfc.html">st_as_sfc</a></span><span class="op">(</span><span class="va">geom_wkb</span>, crs <span class="op">=</span> <span class="fl">25833</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span>sf_column_name <span class="op">=</span> <span class="st">"geom"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<div class="cell">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="st">"/data/Egenutvikling/41001581_egenutvikling_anders_kolstad/ANO"</span></span>
+<span><span class="fu">st_write</span><span class="op">(</span><span class="va">dm2</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">"/vaatmark_2025.gpkg"</span><span class="op">)</span>, append <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>The geometry column is a bit weird though. Not sure what is happening there, but see <a href="https://forum.posit.co/t/geom-column-support-for-dbplyr-for-spatial-databases/3172/9">this</a>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-tmap/tmap">tmap</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_mode.html">tmap_mode</a></span><span class="op">(</span><span class="st">"view"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dm2</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="va">ssbid</span>, <span class="va">geom</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="st">"300"</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">slice_head</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"green"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><img src="img/vaatmark1_5000.jpg" class="img-fluid"></p>
+<div class="cell">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dm2</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="va">ssbid</span>, <span class="va">geom</span>, <span class="va">`300`</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">drop_na</span><span class="op">(</span><span class="va">`300`</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">slice_head</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span>col <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><img src="img/vaatmark1_300.jpg" class="img-fluid"></p>
+<section id="collect-bioclimatic-dataset" class="level3" data-number="5.2.1"><h3 data-number="5.2.1" class="anchored" data-anchor-id="collect-bioclimatic-dataset">
+<span class="header-section-number">5.2.1</span> Collect bioclimatic dataset</h3>
+<div class="cell">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">bc</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/tbl.html">tbl</a></span><span class="op">(</span><span class="va">con</span>, <span class="fu">dbplyr</span><span class="fu">::</span><span class="fu"><a href="https://dbplyr.tidyverse.org/reference/in_schema.html">in_schema</a></span><span class="op">(</span><span class="st">"helper_variables"</span>, <span class="st">"bioclimatic_regions"</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">bc</span> <span class="op">&lt;-</span> <span class="va">bc</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>geom_wkb <span class="op">=</span> <span class="fu">dbplyr</span><span class="fu">::</span><span class="fu"><a href="https://dbplyr.tidyverse.org/reference/sql.html">sql</a></span><span class="op">(</span><span class="st">"ST_AsBinary(geom)"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="va">geom</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">collect</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>geom <span class="op">=</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sfc.html">st_as_sfc</a></span><span class="op">(</span><span class="va">geom_wkb</span>, crs <span class="op">=</span> <span class="fl">25833</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html">st_as_sf</a></span><span class="op">(</span>sf_column_name <span class="op">=</span> <span class="st">"geom"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#class(bc)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">bc</span><span class="op">$</span><span class="va">BCregion</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">bc2</span> <span class="op">&lt;-</span> <span class="va">bc</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">BCregion</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">summarise</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">reg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">bc2</span><span class="op">$</span><span class="va">BCregion</span><span class="op">)</span></span>
+<span><span class="va">bc2</span> <span class="op">&lt;-</span> <span class="va">bc2</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">mutate</span><span class="op">(</span>BCregion <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span></span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">~</span> <span class="fl">2</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span> <span class="op">~</span> <span class="fl">3</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span> <span class="op">~</span> <span class="fl">5</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span> <span class="op">~</span> <span class="fl">7</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span> <span class="op">~</span> <span class="fl">6</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">7</span><span class="op">]</span> <span class="op">~</span> <span class="fl">4</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">8</span><span class="op">]</span> <span class="op">~</span> <span class="fl">8</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">9</span><span class="op">]</span> <span class="op">~</span> <span class="fl">4</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">10</span><span class="op">]</span> <span class="op">~</span> <span class="fl">9</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">11</span><span class="op">]</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">BCregion</span> <span class="op">==</span> <span class="va">reg</span><span class="op">[</span><span class="fl">12</span><span class="op">]</span> <span class="op">~</span> <span class="fl">7</span>,</span>
+<span>  <span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">BCregion</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">summarise</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_mode.html">tmap_mode</a></span><span class="op">(</span><span class="st">"plot"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pal</span> <span class="op">&lt;-</span> <span class="fu">tmaptools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/tmaptools/man/get_brewer_pal.html">get_brewer_pal</a></span><span class="op">(</span><span class="st">"Accent"</span>, n <span class="op">=</span> <span class="fl">9</span>, stretch <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">map</span><span class="op">&lt;-</span> <span class="va">bc2</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_shape.html">tm_shape</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tm_polygons.html">tm_polygons</a></span><span class="op">(</span>col<span class="op">=</span><span class="st">"BCregion"</span>, style<span class="op">=</span><span class="st">"cat"</span>, palette <span class="op">=</span> <span class="va">pal</span>, lwd<span class="op">=</span><span class="fl">0</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/tmap/man/tmap_save.html">tmap_save</a></span><span class="op">(</span><span class="va">map</span>, <span class="st">"img/bcMap.png"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><img src="img/bcMap.png" class="img-fluid"></p>
 
 
-
-</main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -790,4 +883,4 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/021_readFromDb.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/NINAnor/NINA-ebook-template/edit/main/021_readFromDb.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div></div></footer></body></html>

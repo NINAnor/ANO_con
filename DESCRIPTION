@@ -20,5 +20,7 @@ Imports:
   BalancedSampling,
   sampling,
   DT,
-  ggpubr
+  ggpubr,
+  tmap,
+  dm
 
