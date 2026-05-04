@@ -1,4 +1,4 @@
-# Bioclimatic regions
+# Bioclimatic regions from Bakkestuen et al 2008 {#sec-bio1}
 
 Here we prepare a custom version of the bio-climatic regions of Norway [@bakkestuen2008]. 
 The regions are made up of the different combinations of zones and sections. 
