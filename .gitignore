@@ -30,3 +30,5 @@ NINA-ebook-template.Rproj
 # Quarto
 /.quarto/
 ANO_con.Rproj
+*.gdb
+
