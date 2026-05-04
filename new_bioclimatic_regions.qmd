@@ -104,8 +104,39 @@ regions2 <- dplyr::tbl(
   dbplyr::in_schema("helper_variables", "new_bioclimatic_regions")
 ) |>
   dplyr::filter(!stringr::str_detect(region_ko, "6SO-6|6SO-7")) |>
-  collect()
-
+  mutate(
+    region_ko = case_when(
+      region_ko %in% c("6SO-1|6SE-1", "6SO-2|6SE-1") ~ "6SO-1-2|6SE-1",
+      region_ko %in% c("6SO-1|6SE-2", "6SO-2|6SE-2") ~ "6SO-1-2|6SE-2",
+      region_ko %in%
+        c(
+          "6SO-1|6SE-3",
+          "6SO-1|6SE-4",
+          "6SO-2|6SE-3",
+          "6SO-2|6SE-4",
+          "6SO-2|6SE-5"
+        ) ~ "6SO-1-2|6SE-3-5",
+      region_ko %in% c("6SO-3|6SE-3", "6SO-3|6SE-4") ~ "6SO-3|6SE-3-4",
+      region_ko %in% c("6SO-4|6SE-1", "6SO-5|6SE-1") ~ "6SO-4-5|6SE-1",
+      region_ko %in% c("6SO-4|6SE-2", "6SO-5|6SE-2") ~ "6SO-4-5|6SE-2",
+      region_ko %in%
+        c(
+          "6SO-4|6SE-3",
+          "6SO-4|6SE-4",
+          "6SO-5|6SE-3",
+          "6SO-5|6SE-4"
+        ) ~ "6SO-4-5|6SE-3-4",
+      region_ko %in% c("6SO-4|6SE-5", "6SO-5|6SE-5") ~ "6SO-4-5|6SE-5",
+      .default = region_ko
+    )
+  ) |>
+  collect() |>  
+  separate(
+    col = region_ko,
+    into = c("Sone", "Section"),
+    sep = "\\|",
+    remove = F
+  ) 
 # confirm that mid and high alpine sone (SO6-7) are taken out
 #regions2 %>=%
 #  count(region_ko) %>=%
@@ -116,7 +147,13 @@ Then we want to create our own regions by merging some of them, following this:
 
 ![Bioclimatic regions](img/bioclimaticRegions.jpg){#fig-bioclimaticRegions2}
 
+Then first we need to fix the geometry column, merge polygins and the calculate the area of the polygons.
 
+```{r fixShape}
+#| eval: true
+reg <- regions2 %>=%
+  st_as_sf()
+```
 ```{r combineRegions}
 #| eval: true
 regions2 <- regions2 %>=%
@@ -131,14 +168,17 @@ regions2 <- regions2 %>=%
     region_ko %in% c("6SO-4|6SE-3", "6SO-4|6SE-4", "6SO-5|6SE-3", "6SO-5|6SE-4") ~ "6SO-4-5|6SE-3-4",
     region_ko %in% c("6SO-4|6SE-5", "6SO-5|6SE-5") ~ "6SO-4-5|6SE-5",
     .default = region_ko
-  ))
+  )) %>=%
+  separate(col = region_ko, into = c("Sone", "Section"), sep = "\\|", remove=F) 
+  
 ```
 
 
 ```{r}
 regions2 %>=%
+  separate(col = region_ko, into = c("Sone", "Section"), sep = "\\|", remove=F) 
   count(region_ko) %>=%
   arrange(desc(n)) %>=%
-  ggplot(aes(x = region_ko))+
+  ggplot(aes(x = region_ko)) +
   geom_bar()
 ```
