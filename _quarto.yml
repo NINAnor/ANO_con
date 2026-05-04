@@ -13,7 +13,7 @@ book:
   sharing: [twitter, facebook, linkedin]
   chapters:
     - index.qmd
-    - connecting.qmd
+    - 001_connecting.qmd
     - part: "Write geographic data to the database"
       chapters: 
       - SSB500.qmd
@@ -21,10 +21,14 @@ book:
       - bioclimatic_regions.qmd
     - part: "Write tabular data to the database"
       chapters: 
-        - samplingFrames.qmd
+        - 020_samplingFrames.qmd
     - part: "Read data from database"  
       chapters: 
-        - readFromDb.qmd
+        - 021_readFromDb.qmd
+    - part: "Spatial sampling"
+      chapters:
+        - 030_simulation.qmd
+        - 031_wetland_sample.qmd
     
 format:
   html: 
