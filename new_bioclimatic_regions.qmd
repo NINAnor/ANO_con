@@ -13,6 +13,7 @@ Then we need to intersect this data with the SSB grid so that each SSB grid cell
 library(stringr)
 
 ```
+
 ## Import
 
 ```{r import-new-bioclimreg}
@@ -130,55 +131,26 @@ regions2 <- dplyr::tbl(
       .default = region_ko
     )
   ) |>
-  collect() |>  
+  mutate(geom_wkb = dbplyr::sql("ST_AsBinary(shape)")) |>
+  select(-shape) |>
+  collect() |>
   separate(
     col = region_ko,
     into = c("Sone", "Section"),
     sep = "\\|",
     remove = F
-  ) 
+  ) |>
+  mutate(geom = sf::st_as_sfc(geom_wkb, crs = 25833)) |>
+  sf::st_as_sf(sf_column_name = "geom")
 # confirm that mid and high alpine sone (SO6-7) are taken out
 #regions2 %>=%
 #  count(region_ko) %>=%
 #  arrange(desc(region_ko))
 ```
 
-Then we want to create our own regions by merging some of them, following this:
+In the code above we have made our own regions by merging some of the original regions, following this:
 
 ![Bioclimatic regions](img/bioclimaticRegions.jpg){#fig-bioclimaticRegions2}
 
-Then first we need to fix the geometry column, merge polygins and the calculate the area of the polygons.
-
-```{r fixShape}
-#| eval: true
-reg <- regions2 %>=%
-  st_as_sf()
-```
-```{r combineRegions}
-#| eval: true
-regions2 <- regions2 %>=%
-  as_tibble() %>=%
-  mutate(region_ko = case_when(
-    region_ko %in% c("6SO-1|6SE-1", "6SO-2|6SE-1") ~ "6SO-1-2|6SE-1",
-    region_ko %in% c("6SO-1|6SE-2", "6SO-2|6SE-2") ~ "6SO-1-2|6SE-2",
-    region_ko %in% c("6SO-1|6SE-3", "6SO-1|6SE-4", "6SO-2|6SE-3", "6SO-2|6SE-4", "6SO-2|6SE-5") ~ "6SO-1-2|6SE-3-5",
-    region_ko %in% c("6SO-3|6SE-3", "6SO-3|6SE-4") ~ "6SO-3|6SE-3-4",
-    region_ko %in% c("6SO-4|6SE-1", "6SO-5|6SE-1") ~ "6SO-4-5|6SE-1",
-    region_ko %in% c("6SO-4|6SE-2", "6SO-5|6SE-2") ~ "6SO-4-5|6SE-2",
-    region_ko %in% c("6SO-4|6SE-3", "6SO-4|6SE-4", "6SO-5|6SE-3", "6SO-5|6SE-4") ~ "6SO-4-5|6SE-3-4",
-    region_ko %in% c("6SO-4|6SE-5", "6SO-5|6SE-5") ~ "6SO-4-5|6SE-5",
-    .default = region_ko
-  )) %>=%
-  separate(col = region_ko, into = c("Sone", "Section"), sep = "\\|", remove=F) 
-  
-```
-
-
-```{r}
-regions2 %>=%
-  separate(col = region_ko, into = c("Sone", "Section"), sep = "\\|", remove=F) 
-  count(region_ko) %>=%
-  arrange(desc(n)) %>=%
-  ggplot(aes(x = region_ko)) +
-  geom_bar()
-```
+Now we will get the SSB500 dataset and intersect those. 
+Then we can create a pie and donut plot to show the areal extent for each custom region, to ensure none of them are too marginal.  
