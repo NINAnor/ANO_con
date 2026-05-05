@@ -11,7 +11,7 @@ Then we need to intersect this data with the SSB grid so that each SSB grid cell
 ```{r setup-bioclim2}
 #| eval: true
 library(stringr)
-
+library(logrittr)
 ```
 
 ## Import
@@ -104,7 +104,7 @@ regions2 <- dplyr::tbl(
   con,
   dbplyr::in_schema("helper_variables", "new_bioclimatic_regions")
 ) |>
-  dplyr::filter(!stringr::str_detect(region_ko, "6SO-6|6SO-7")) |>
+  #dplyr::filter(!stringr::str_detect(region_ko, "6SO-6|6SO-7")) |>
   mutate(
     region_ko = case_when(
       region_ko %in% c("6SO-1|6SE-1", "6SO-2|6SE-1") ~ "6SO-1-2|6SE-1",
@@ -128,6 +128,18 @@ regions2 <- dplyr::tbl(
           "6SO-5|6SE-4"
         ) ~ "6SO-4-5|6SE-3-4",
       region_ko %in% c("6SO-4|6SE-5", "6SO-5|6SE-5") ~ "6SO-4-5|6SE-5",
+      region_ko %in%
+        c(
+          "6SO-6|6SE-1",
+          "6SO-6|6SE-2",
+          "6SO-6|6SE-3",
+          "6SO-6|6SE-4",
+          "6SO-6|6SE-5",
+          "6SO-7|6SE-1",
+          "6SO-7|6SE-2",
+          "6SO-7|6SE-3",
+          "6SO-7|6SE-4"
+        ) ~ "6SO-6-7|6SE-1-5",
       .default = region_ko
     )
   ) |>
@@ -148,9 +160,84 @@ regions2 <- dplyr::tbl(
 #  arrange(desc(region_ko))
 ```
 
+```{r plotRegions}
+
+pal <- tmaptools::get_brewer_pal("Paired", n = 9)
+pal <- c(pal, "#808080")
+
+
+map <- regions2 |>
+  tm_shape()+
+  tm_polygons(col="region_ko", style="cat", palette = my_palette, lwd=0)
+map
+#tmap_save(map, "img/regMap.png")
+```
+
 In the code above we have made our own regions by merging some of the original regions, following this:
 
 ![Bioclimatic regions](img/bioclimaticRegions.jpg){#fig-bioclimaticRegions2}
 
 Now we will get the SSB500 dataset and intersect those. 
 Then we can create a pie and donut plot to show the areal extent for each custom region, to ensure none of them are too marginal.  
+
+
+
+```{r getSSB500}
+ssb500 <- dplyr::tbl(
+  con,
+  dbplyr::in_schema("ssb_grids", "ssb_500")
+) |>
+  mutate(geom_wkb = dbplyr::sql("ST_AsBinary(geom)")) |>
+  collect() |>
+  mutate(geom = sf::st_as_sfc(geom_wkb, crs = 25833)) |>
+  sf::st_as_sf(sf_column_name = "geom")
+```
+
+
+```{r}
+int <- st_intersection(
+  ssb500["ssbid"],
+  regions2["region_ko"]) |>
+    mutate(area_int = as.numeric(st_area(geom)))
+```
+
+```{r intersect-test}
+library(eaTools)
+data("ex_polygons")
+data("accounting_area")
+eaa <- accounting_area
+pol <- ex_polygons |>
+  mutate(cat_var = as.character(condition_variable_1))
+
+
+tm_shape(eaa) +
+  tm_polygons(col = "name")
+
+eaa2 <- eaa |>
+  mutate(id = row_number(),
+  area = as.numeric(st_area(geometry)))
+
+tm_shape(eaa2) +
+  tm_polygons(col = "id")
+
+int <- st_intersection(
+  eaa2["id"],
+  pol["cat_var"]
+) |>
+  mutate(area_int = as.numeric(st_area(geometry)))
+
+avg_values <- int |>
+  st_drop_geometry() |>
+  filter(!is.na(cat_var)) |>
+  group_by(id, cat_var) |>
+  summarise(
+    area_sum = sum(area_int), .groups = "drop") |>
+  group_by(id) |>
+  slice_max(area_sum, n = 1, with_ties=FALSE) |>
+  ungroup() |>
+  select(id, cat_var)
+
+eaa3 <- eaa2 |>
+  left_join(avg_values, by = "id")
+
+```
