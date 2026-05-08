@@ -1,4 +1,4 @@
-# Bioclimatic regions
+# Bioclimatic regions {#sec-bcr}
 
 In 2024-2025 we made an initial samlpling of localities for ANO wetlands using modified bioclimatic regions from [@bakkestuen2008] (@sec-bio1).
 In 2026 we got a new map of bioclimatic sones and sections and we decided to make a new sampling. 
@@ -303,11 +303,6 @@ We already have a sampling frame for ANO våtmark, which we will now update to
 - include the new bioclimatic regions
 - remove 6SO-6-7
 
-I will just save the tabular data here, and update the sampling fram in the relevant chapter.
+I will just save the tabular data here (`avg_values.rds`), and update the sampling frame in the relevant chapter.
 
-```{r}
-#| eval: false
-
-
-```
 

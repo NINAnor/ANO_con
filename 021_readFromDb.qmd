@@ -36,7 +36,7 @@ vaatmark_2025 <- dplyr::tbl(con, dbplyr::in_schema("samples", "vaatmark_2025"))
 ## Collect and join data
 This data only exists remotely still.
 We need to use collect to bring it down to our local machine. 
-At the same time we can use dplyr pipelines to filter the data.
+At the same time we can use dplyr pipelines to filter the data. 
 
 ```{r}
 #| eval: true
