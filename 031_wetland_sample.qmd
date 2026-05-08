@@ -2,6 +2,7 @@
 
 Now we go on to create the actual samples for ANO våtmark (wetlands), using `spaceR::nested_balanced_samples`.
 
+We updated the sample in may 2026.
 
 ```{r setup_sample}
 #| include: false
@@ -18,7 +19,7 @@ library(dm)
 #Sys.unsetenv("GITHUB_TOKEN")
 #remotes::install_github("NINAnor/spaceR", force = T)
 library(spaceR)
-#?nested_balanced
+#?nested_balanced_samples
 
 ```
 
@@ -29,14 +30,14 @@ First we need to fetch the sampling frame from the database.
 #| eval: true
 con <- DBI::dbConnect(drv = RPostgres::Postgres(), host = "t2lippgsql03", dbname = "ano_moduler")
 
-pop <- dplyr::tbl(con, dbplyr::in_schema("sampling_frames", "samplingframe_vaatmark_2025")) |>
+pop <- dplyr::tbl(con, dbplyr::in_schema("sampling_frames", "samplingframe_vaatmark_2026")) |>
   dplyr::collect()
 
 # helper to get a small subset of the data for testing
 small <- function(data = pop) data |>  slice_sample(n = 10000)
 ```
 
-This dataset (sampling frame) is `r nrow(pop)` long. @tbl-sf show just the first ten rows. We have two spreading variables: an easting `ost`, a northing `nord`. We also have sampling unit ID's in `ssbid`, and two auxiliary variable for balancing: `mean_slope` and `abi`. The stratification variable we need to create based on `seksjon_kode` and `sone_kode`. We also need to create an `area` variable based on the sum of `r_hav` and `r_ferskvann`. 
+This dataset (sampling frame) is `r nrow(pop)` long. @tbl-sf show just the first ten rows. We have two spreading variables: an easting `ost`, a northing `nord`. We also have sampling unit ID's in `ssbid`, and two auxiliary variable for balancing: `mean_slope` and `abi`. The stratification variable is called `region_ko` or `region_number`. We also need to create an `area` variable based on the sum of `r_hav` and `r_ferskvann`. 
 
 ```{r tbl-sf}
 #| include: true
@@ -65,27 +66,15 @@ dotchart(wet_small$abi)
 
 ```{r makeVars}
 #| eval: true
-
 pop <- pop |>
-  rename(Northing = nord,
-         Easting = ost) |>
-  mutate(area = 100 - r_hav - r_ferskvann,
-         stratum = case_when(
-           seksjon_kode %in% c("6SE-3", "6SE-4", "6SE-5") & sone_kode %in% c("6SO-1", "6SO-2") ~  1,
-           seksjon_kode %in% c("6SE-2") & sone_kode %in% c("6SO-1", "6SO-2") ~  2,
-           seksjon_kode %in% c("6SE-1") & sone_kode %in% c("6SO-1", "6SO-2") ~  3,
-           seksjon_kode %in% c("6SE-1") & sone_kode %in% c("6SO-3", "6SO-4", "6SO-5") ~  4,
-           seksjon_kode %in% c("6SE-2") & sone_kode %in% c("6SO-3") ~  5,
-           seksjon_kode %in% c("6SE-2") & sone_kode %in% c("6SO-4", "6SO-5") ~  6,
-           seksjon_kode %in% c("6SE-3", "6SE-4", "6SE-5") & sone_kode %in% c("6SO-3") ~  7,
-           seksjon_kode %in% c("6SE-3", "6SE-4") & sone_kode %in% c("6SO-4", "6SO-5") ~  8,
-           seksjon_kode %in% c("6SE-5") & sone_kode %in% c("6SO-4", "6SO-5") ~  9,
-           .default = 99
-           ))
-
+  rename(Northing = nord, Easting = ost) |>
+  mutate(
+    area = 100 - r_hav - r_ferskvann,
+    stratum = as.character(region_number)
+  )
 ```
 
-There is one or a few cases of negative areas. I will just set those tpo be zeros.
+There is one or a few cases of negative areas. I will just set those to be zeros.
 ```{r}
 #| eval: true
 # min(pop$area) #negative
@@ -98,7 +87,6 @@ pop <- pop |>
 ```
 
 
-There is a problem with NAs in the bioclimatic zones and regions:
 ```{r tbl-n}
 #| eval: true
 #| tbl-cap: 'Number of population units (SSB500 squares) in each strata.'
@@ -107,40 +95,122 @@ pop |>
   summarise(n = n())
 ```
 
-We have `r nrow(pop[pop$stratum == 99,])` population units that we don't know the strata for. 
-Let's see if there is a pattern to where these units are found. 
-The first check below tells us that stratum 99 is a consequence of NA's on both the sone and section. 
-```{r}
-#| eval: true
-pop |>
-  filter(stratum == 99) |>
-  tidyr::unite(combo, c(seksjon_kode, sone_kode)) |>
-  distinct(combo)
-```
 
-Then @fig-dots tells us that the population units where we lack data on bioclimatic regions are mainly along the coast (a lot of ocean), 
-but also close to freshwater. 
-This is a problem, as it will lead to undersampling of areas close to water.
-However, we cannot solve this now, and rumors have it that the bioclimatic zone and regions dataset will get updated very soon, 
-so then we can also update (rerun) the sampling pipeline.
-
-The same problem seems to also be for `abi`, that we have false zero values along the coast or along water. 
+There is a problem with `abi` that we have false zero values along the coast or along water. 
 We know this from visual checks, but also from @fig-dots where we see that `abi` is always zero, 
 at the same time that `r_bebygd_samf` is not.
 
 ```{r fig-dots}
 #| eval: true
 #| message: false
-#| fig-cap: 'Distrbutions for selected variables for whick we lack data on stratum (bioclimatic region).' 
+#| fig-cap: 'Distributions for selected variables for ABI is zero and r_bebygd_samf is not.' 
 pop |>
-  filter(stratum == 99) |>
-  pivot_longer(cols = c(r_hav, r_ferskvann, abi, mean_slope, r_bebygd_samf, r_sno_isbre)) |>
+  filter(abi == 0 & r_bebygd_samf > 0) |>
+  pivot_longer(cols = c(r_hav, r_ferskvann, region_number, mean_slope, r_bebygd_samf, r_sno_isbre)) |>
   ggplot()+
   geom_dotplot(aes(value))+
-  facet_wrap(.~name)+
+  facet_wrap(.~name, scales = "free")+
   theme_bw()
-
 ```
+
+Lets find these potentially erroneous ABI==0 cells and plot them on a map.
+
+```{r}
+# get ssb500 and join, then make it spatial
+# for some reason dm::dm_from_con did work here, so I join manually
+ssb500 <- dplyr::tbl(con, dbplyr::in_schema("ssb_grids", "ssb_500")) |>
+  mutate(geom_wkb = dbplyr::sql("ST_AsBinary(geom)")) |>
+  select(-geom) |>
+  collect() |>
+  mutate(geom = sf::st_as_sfc(geom_wkb, crs = 25833)) |>
+  sf::st_as_sf(sf_column_name = "geom")
+
+# join
+ssb500_j <- ssb500 |>
+  sf::st_drop_geometry() |>
+  left_join(pop, by = join_by(ssbid))
+
+# find problem cells and tag them
+# plot using tmap interactive map
+
+
+library(spdep)
+
+# grid: your sf object
+# columns: ABI and percentage_build_up_area
+
+grid <- grid %>%
+  mutate(
+    problem = ABI == 0 & percentage_build_up_area > 0
+  )
+
+ # Find neighbouring cells:
+
+nb <- poly2nb(grid, queen = TRUE)
+
+#Impute each problem cell from the nearest neighbouring cell with ABI > 0:
+
+impute_from_neighbour <- function(i, grid, nb) {
+  neigh <- nb[[i]]
+
+  # candidate neighbours with positive ABI
+  candidates <- neigh[grid$ABI[neigh] > 0]
+
+  if (length(candidates) == 0) {
+    return(NA_real_)
+  }
+
+  # use the neighbour with the largest shared boundary / nearest centroid
+  d <- st_distance(
+    st_centroid(grid[i, ]),
+    st_centroid(grid[candidates, ])
+  )
+
+  grid$ABI[candidates[which.min(d)]]
+}
+
+problem_ids <- which(grid$problem)
+
+grid$ABI_imputed <- grid$ABI
+
+grid$ABI_imputed[problem_ids] <- vapply(
+  problem_ids,
+  impute_from_neighbour,
+  numeric(1),
+  grid = grid,
+  nb = nb
+)
+
+#Then keep track of which values were changed:
+
+grid <- grid %>%
+  mutate(
+    ABI_was_imputed = problem & !is.na(ABI_imputed),
+    ABI_final = if_else(ABI_was_imputed, ABI_imputed, ABI)
+  )
+
+#One caution: if a problem cell touches only other ABI == 0 cells, this leaves it as NA in ABI_imputed. That is usually safer than inventing a value. You can later run a second pass if needed.
+```
+
+Then let's set those ABI values to NA, and impute them from the nearest cell that has an ABI value. For this the data needs to be spatial.
+
+<!-- library(terra)
+
+# Problem cells
+problem <- abi == 0 & bua > 0
+
+# Convert zeros to NA
+abi_na <- abi
+abi_na[abi_na == 0] <- NA
+
+# Fill using nearest non-NA value
+abi_filled <- approxNA(abi_na, method="near")
+# maybe there is a different method, like max?, that we can use.
+
+# Replace only problematic cells
+abi_final <- abi
+abi_final[problem] <- abi_filled[problem] -->
+
 
 ## Sample
 First we subset the columns, and run a test on 10 000 rows.
