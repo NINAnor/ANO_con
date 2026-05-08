@@ -246,18 +246,9 @@ Now let's check that there is a reasonable area within each region, so that it m
 
 ```{r}
 #| eval: false
-saveRDS(avg_values, here::here("data/avg_values.rds"))
-```
 
-```{r}
-#| eval: true
-
-avg_values <- readRDS(here::here("data/avg_values.rds"))
-avg_values |>
-  count(region_ko) |>
-  mutate(
-    km2 = n / 4,
-    region_number = case_when(
+avg_values2 <- avg_values |>
+  mutate(region_number = case_when(
       region_ko == "6SO-1-2|6SE-1-2" ~ 2,
       region_ko == "6SO-1-2|6SE-3-5" ~ 1,
       region_ko == "6SO-3|6SE-1-2" ~ 4,
@@ -265,11 +256,21 @@ avg_values |>
       region_ko == "6SO-4-5|6SE-1-2" ~ 7,
       region_ko == "6SO-4-5|6SE-3-4" ~ 6,
       region_ko == "6SO-4-5|6SE-5" ~ 5,
-      .default = 99
-    )
-  ) |>
+      .default = 99))
+
+saveRDS(avg_values2, here::here("data/avg_values.rds"))
+```
+
+```{r}
+#| eval: true
+
+avg_values <- readRDS(here::here("data/avg_values.rds"))
+
+avg_values |>
   filter(region_number != 99) |>
-  select(region_number, region_ko, km2) |>
+  count(region_number) |>
+  mutate(km2 = n / 4) |>
+  select(region_number, km2) |>
   arrange(region_number) |>
   knitr::kable()
   
@@ -294,4 +295,19 @@ dev.off()
 ```
 
 ![](img/new_bcregPie.png)
+
+## Write to db
+Then we are ready to write the strata information as a table to the database.
+We already have a sampling frame for ANO våtmark, which we will now update to 
+
+- include the new bioclimatic regions
+- remove 6SO-6-7
+
+I will just save the tabular data here, and update the sampling fram in the relevant chapter.
+
+```{r}
+#| eval: false
+
+
+```
 
