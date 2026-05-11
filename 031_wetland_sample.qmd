@@ -19,7 +19,7 @@ library(dm)
 #Sys.unsetenv("GITHUB_TOKEN")
 #remotes::install_github("NINAnor/spaceR", force = T)
 library(spaceR)
-#?nested_balanced_samples
+#?nested_balanced
 
 ```
 
@@ -126,9 +126,20 @@ So I will have to ignore this potential issue for now.
 First we subset the columns, and run a test on 10 000 rows.
 ```{r stripdata}
 #| eval: true
-
 pop <- pop |>
-  select(ssbid, Easting, Northing, area, abi, mean_slope, stratum)
+  select(
+    ssbid,
+    Easting,
+    Northing,
+    area,
+    abi,
+    mean_slope,
+    stratum,
+    geographic_region,
+    fylk2016,
+    fylk_navn,
+    komm2016
+  )
 
 wet_small <- small()
 ```
@@ -179,7 +190,7 @@ wetlands <- spaceR::nested_balanced(
 )
 tictoc::toc()
 # 1012.165 sec elapsed
-#saveRDS(wetlands, "data/wetlands.rds")
+#saveRDS(wetlands, "data/wetlands2026.rds")
 ```
 
 Now I will combine all these lists of lists into something more manageable, like a dataframe.
@@ -217,8 +228,6 @@ In the code below I check that the proportion of cells with >100% terrestrial ar
 we have reduced the proportion of sampling units that have less then 100 or 50% or area by approx. 9 and 71%, respectively.
 
 ```{r}
-
-
 prob_matrix |>
   select(ssbid, area, "1000", "500", "100") |>
   pivot_longer(cols = c("1000", "500", "100"),
@@ -234,24 +243,118 @@ prob_matrix |>
   ) |>
   knitr::kable()
 ```
+
 ![](img/props.jpg)
 
 ## Evaluate balance
 
 Here we should ideally evaluate the balance of the sample against a simple random sample, for example using `BalancedSampling::sb()`, but we don't have time to to this now unfortunately.
 
-But we can make some histograms, and it looks very good. 
+We can do a quick and dirty evaluation by filtering out cells with <100% terrestrial area, and sort of take out the pps factor. Then we get the mean for the balancing variables for each strata. We'll keep the analysis to strata 1.
+```{r}
+one <- pop |>
+  filter(area == 100 & stratum == 1) |>
+  group_by(stratum) |>
+  summarise(mean_slope = mean(mean_slope), mean_abi = mean(abi)) |>
+  add_column(sample = "all")
+
+two <- prob_matrix |>
+  filter(area == 100 & stratum == 1) |>
+  group_by(stratum) |>
+  summarise(mean_slope = mean(mean_slope), mean_abi = mean(abi)) |>
+    add_column(sample = "1000")
+
+three <- prob_matrix |>
+  filter(area == 100 & stratum == 1 & !is.na(`500`)) |>
+  group_by(stratum) |>
+  summarise(mean_slope = mean(mean_slope), mean_abi = mean(abi)) |>
+    add_column(sample = "500")
+
+four <- prob_matrix |>
+  filter(area == 100 & stratum == 1 & !is.na(`100`)) |>
+  group_by(stratum) |>
+  summarise(mean_slope = mean(mean_slope), mean_abi = mean(abi)) |>
+    add_column(sample = "100")
+
+five <- prob_matrix |>
+  filter(area == 100 & stratum == 1 & !is.na(`50`)) |>
+  group_by(stratum) |>
+  summarise(mean_slope = mean(mean_slope), mean_abi = mean(abi)) |>
+    add_column(sample = "50")
+comb <- one |> bind_rows(two) |> bind_rows(three) |> bind_rows(four) |> bind_rows(five)
+comb
+```
+
+It's not easy to say if this result is good or bad. At least there is no clear structure, for example that the mean decreases or increases as the samples get smaller. We can to add some simple random samples to compare.
 
 ```{r}
-pop |> ggplot(aes(mean_slope)) + geom_histogram()
-prob_matrix |> ggplot(aes(mean_slope)) + geom_histogram()
-prob_matrix |> filter(!is.na('100')) |> ggplot(aes(mean_slope)) + geom_histogram()
+r1000 <- pop |>
+  filter(area == 100 & stratum == 1) |>
+  slice_sample(n = 1000)
+
+r500 <- r1000 |> slice_sample(n = 500)
+r100 <- r500 |> slice_sample(n = 100)
+r50 <- r100 |> slice_sample(n = 50)
+
+r1000 <- r1000 |>
+  summarise(r_mean_slope = mean(mean_slope), r_mean_abi = mean(abi))
+
+r500 <- r500 |>
+  summarise(r_mean_slope = mean(mean_slope), r_mean_abi = mean(abi))
+
+r100 <- r100 |>
+  summarise(r_mean_slope = mean(mean_slope), r_mean_abi = mean(abi))
+
+r50 <- r50 |>
+  summarise(r_mean_slope = mean(mean_slope), r_mean_abi = mean(abi))
+
+comb2 <- r1000 |>
+  add_row(r_mean_slope = NA, r_mean_abi = NA, .before = 1) |>
+  bind_rows(list(r500, r100, r50))
+
+comb |>
+  bind_cols(comb2) |>
+  select(sample, mean_slope, r_mean_slope, mean_abi, r_mean_abi)
 ```
+
+They are not very different. Maybe there is more of a founding bias for the SRS.
+But I dont think this test is very robust. It should be replicated/bootstrapped, and the ppm makes it more difficult as well. 
+At least the balanced samples are not very wrong. But I cant say for sure that they are more representative than SRS.
+
+## Locations per region
+
+How many sampling locations do we now get per geographic region for different total sampling sizes?
+The sample size refers to the number of samples per stratum. 
+So when n = 1000 we have 7000 samples nationally.
+
+```{r}
+prob_matrix %>=%
+  filter(!is.na(`50`)) %>=%
+  group_by(geographic_region) %>=%
+  count(name = "n = 50") |>
+  add_column(
+    prob_matrix %>=%
+      filter(!is.na(`60`)) %>=%
+      group_by(geographic_region) %>=%
+      count(name = "n = 60") %>=%
+      ungroup() %>=%
+      select("n = 60"),
+
+    prob_matrix %>=%
+      filter(!is.na(`70`)) %>=%
+      group_by(geographic_region) %>=%
+      count(name = "n = 70") %>=%
+      ungroup() %>=%
+      select("n = 70")
+  ) |>
+  knitr::kable()
+```
+
 
 ## Write to db
 
 ### Setup sample schema
-This part sets up the schema, and is only done ones.
+This part sets up the schema, and is only done once
 
 ```{r}
 schema_ur <- "CREATE SCHEMA samples"
@@ -276,21 +379,38 @@ dbSendStatement(con, priv6)
 
 ### Prepare and export
 
-```{r}
-myIDs <- uuid::UUIDgenerate(n = nrow(prob_matrix))
-wetlands_db <- prob_matrix |>
-  mutate(wetlands_sample_unit_id = myIDs,
-         .after = 1) |>
-  select(-Easting, -Northing, -area, -abi, -mean_slope, -stratum)
+First I will try and make a sensible unique ID. 
 
-write_csv(wetlands_db, "data/wetland_samples_1000.csv")
+```{r}
+cols <- as.character(seq(1000, 10, -10))
+prob_matrix2 <- prob_matrix %>%
+  arrange(across(all_of(cols), ~ is.na(.))) %>%
+  mutate(ano_vaatmark_2026_flateid = paste0("ID_", row_number()), .before=1)
+```
+
+```{r}
+wetlands_db <- prob_matrix2 |>
+  select(
+    -Easting,
+    -Northing,
+    -area,
+    -abi,
+    -mean_slope,
+    -stratum,
+    -geographic_region,
+    -fylk2016,
+    -fylk_navn,
+    -komm2016
+  )
+
+write_csv(wetlands_db, "data/wetland_samples_1000_2026.csv")
 ```
 
 
 ```{r}
 #| code-fold: true
-q1 <- 'create table samples.vaatmark_2025 (
-wetlands_sample_unit_ID varchar(50) PRIMARY KEY,
+q1 <- 'create table samples.vaatmark_2026 (
+ano_vaatmark_2026_flateid varchar(50) PRIMARY KEY,
 ssbid varchar(50),
   "1000" numeric(24,23),
    "990" numeric(24,23),
@@ -403,8 +523,8 @@ ssbid varchar(50),
 
 ```{r}
 # indices makes the database work faster. It should be added to all tables that are looked up frequently
-q2 <- "create index on samples.vaatmark_2025 using btree(ssbid);"
-q3 <- "create index on samples.vaatmark_2025 using btree(wetlands_sample_unit_ID);"
+q2 <- "create index on samples.vaatmark_2026 using btree(ssbid);"
+q3 <- "create index on samples.vaatmark_2026 using btree(ano_vaatmark_2026_flateid);"
 ```
 
 
@@ -417,7 +537,7 @@ dbSendStatement(con, q3)
 
 ```{r}
 write_sf(wetlands_db, dsn = con,
-         layer = Id(schema = "samples", table = "vaatmark_2025"), 
+         layer = Id(schema = "samples", table = "vaatmark_2026"), 
          append = T)
 ```
 
@@ -425,7 +545,7 @@ Testing that the data is there:
 
 ```{r}
 #| eval: true
-dplyr::tbl(con, dbplyr::in_schema("samples", "vaatmark_2025")) |>
+dplyr::tbl(con, dbplyr::in_schema("samples", "vaatmark_2026")) |>
   #dplyr::slice(n = 8) |>
   select(ssbid, "1000", "500", "100")
 ```
