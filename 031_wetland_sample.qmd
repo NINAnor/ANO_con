@@ -61,6 +61,7 @@ dotchart(wet_small$nord)
 
 dotchart(wet_small$mean_slope)
 dotchart(wet_small$abi)
+hist(wet_small$abi)
 
 ```
 
@@ -84,6 +85,8 @@ pop <- pop |>
     area < 0 ~ 0,
     .default = area
   ))
+wet_small <- small(pop)
+
 ```
 
 
@@ -95,121 +98,28 @@ pop |>
   summarise(n = n())
 ```
 
-
-There is a problem with `abi` that we have false zero values along the coast or along water. 
-We know this from visual checks, but also from @fig-dots where we see that `abi` is always zero, 
-at the same time that `r_bebygd_samf` is not.
-
-```{r fig-dots}
-#| eval: true
-#| message: false
-#| fig-cap: 'Distributions for selected variables for ABI is zero and r_bebygd_samf is not.' 
-pop |>
-  filter(abi == 0 & r_bebygd_samf > 0) |>
-  pivot_longer(cols = c(r_hav, r_ferskvann, region_number, mean_slope, r_bebygd_samf, r_sno_isbre)) |>
-  ggplot()+
-  geom_dotplot(aes(value))+
-  facet_wrap(.~name, scales = "free")+
-  theme_bw()
-```
-
-Lets find these potentially erroneous ABI==0 cells and plot them on a map.
+There is a potnetial issue with `abi` that we have false zero values, because we 
+see that there are quite some cases where ABI is zero and r_bebygd_samf is not zero.
+Maybe this has a natural explanation, but I am not sure. 
 
 ```{r}
-# get ssb500 and join, then make it spatial
-# for some reason dm::dm_from_con did work here, so I join manually
-ssb500 <- dplyr::tbl(con, dbplyr::in_schema("ssb_grids", "ssb_500")) |>
-  mutate(geom_wkb = dbplyr::sql("ST_AsBinary(geom)")) |>
-  select(-geom) |>
-  collect() |>
-  mutate(geom = sf::st_as_sfc(geom_wkb, crs = 25833)) |>
-  sf::st_as_sf(sf_column_name = "geom")
-
-# join
-ssb500_j <- ssb500 |>
-  sf::st_drop_geometry() |>
-  left_join(pop, by = join_by(ssbid))
-
-# find problem cells and tag them
-# plot using tmap interactive map
-
-
-library(spdep)
-
-# grid: your sf object
-# columns: ABI and percentage_build_up_area
-
-grid <- grid %>%
-  mutate(
-    problem = ABI == 0 & percentage_build_up_area > 0
-  )
-
- # Find neighbouring cells:
-
-nb <- poly2nb(grid, queen = TRUE)
-
-#Impute each problem cell from the nearest neighbouring cell with ABI > 0:
-
-impute_from_neighbour <- function(i, grid, nb) {
-  neigh <- nb[[i]]
-
-  # candidate neighbours with positive ABI
-  candidates <- neigh[grid$ABI[neigh] > 0]
-
-  if (length(candidates) == 0) {
-    return(NA_real_)
-  }
-
-  # use the neighbour with the largest shared boundary / nearest centroid
-  d <- st_distance(
-    st_centroid(grid[i, ]),
-    st_centroid(grid[candidates, ])
-  )
-
-  grid$ABI[candidates[which.min(d)]]
-}
-
-problem_ids <- which(grid$problem)
-
-grid$ABI_imputed <- grid$ABI
-
-grid$ABI_imputed[problem_ids] <- vapply(
-  problem_ids,
-  impute_from_neighbour,
-  numeric(1),
-  grid = grid,
-  nb = nb
-)
-
-#Then keep track of which values were changed:
-
-grid <- grid %>%
-  mutate(
-    ABI_was_imputed = problem & !is.na(ABI_imputed),
-    ABI_final = if_else(ABI_was_imputed, ABI_imputed, ABI)
-  )
-
-#One caution: if a problem cell touches only other ABI == 0 cells, this leaves it as NA in ABI_imputed. That is usually safer than inventing a value. You can later run a second pass if needed.
+plot(wet_small$r_bebygd_samf, wet_small$abi)
 ```
 
-Then let's set those ABI values to NA, and impute them from the nearest cell that has an ABI value. For this the data needs to be spatial.
+I though that maybe this was an edge effect from water, but the plot below doesn't tell this.
 
-<!-- library(terra)
+```{r}
+wet_small |>
+  filter(abi == 0 & r_bebygd_samf > 0) |>
+  ggplot(aes(area)) +
+  geom_histogram() +
+  labs(
+    x = "Area that is land (%)",
+    y = "Number of cells with ABI zero and r_bebygd_samf > 0"
+  )
+```
 
-# Problem cells
-problem <- abi == 0 & bua > 0
-
-# Convert zeros to NA
-abi_na <- abi
-abi_na[abi_na == 0] <- NA
-
-# Fill using nearest non-NA value
-abi_filled <- approxNA(abi_na, method="near")
-# maybe there is a different method, like max?, that we can use.
-
-# Replace only problematic cells
-abi_final <- abi
-abi_final[problem] <- abi_filled[problem] -->
+So I will have to ignore this potential issue for now. 
 
 
 ## Sample
@@ -218,8 +128,7 @@ First we subset the columns, and run a test on 10 000 rows.
 #| eval: true
 
 pop <- pop |>
-  select(ssbid, Easting, Northing, area, abi, mean_slope, stratum) |>
-    filter(stratum != 99)
+  select(ssbid, Easting, Northing, area, abi, mean_slope, stratum)
 
 wet_small <- small()
 ```
@@ -304,7 +213,7 @@ prob_matrix <- pop |>
 head(prob_matrix)
 ```
 
-In the code below I check that the proportion stay stable after the initial pps, and the do. Compared to the full population,
+In the code below I check that the proportion of cells with >100% terrestrial area, stay stable after the initial pps, and the do. Compared to the full population,
 we have reduced the proportion of sampling units that have less then 100 or 50% or area by approx. 9 and 71%, respectively.
 
 ```{r}
@@ -323,13 +232,21 @@ prob_matrix |>
             prop_below_50 = mean(area < 50, na.rm=T)) |>
     add_column("name" = "Population", .before = 1)
   ) |>
-  kable()
+  knitr::kable()
 ```
 ![](img/props.jpg)
 
 ## Evaluate balance
 
 Here we should ideally evaluate the balance of the sample against a simple random sample, for example using `BalancedSampling::sb()`, but we don't have time to to this now unfortunately.
+
+But we can make some histograms, and it looks very good. 
+
+```{r}
+pop |> ggplot(aes(mean_slope)) + geom_histogram()
+prob_matrix |> ggplot(aes(mean_slope)) + geom_histogram()
+prob_matrix |> filter(!is.na('100')) |> ggplot(aes(mean_slope)) + geom_histogram()
+```
 
 ## Write to db
 
