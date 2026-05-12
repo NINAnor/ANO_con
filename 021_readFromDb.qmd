@@ -49,14 +49,19 @@ coast_sample |>
 We can also get the geometries, which are stored in the foreign table.
 To do this we can use the dm package.
 
+> This feature is not working due to problems defining foreign keys in the database
+
+But now we import the two tables separately and join them. 
+<!-- 
+
 We first create a dm object from the connection object.
 Then we can view data easily.
 ```{r}
-#| eval: true
+#| eval: false
 dm <- dm::dm_from_con(con,
   table_names = c(
-    "ssb_500",
-    "vaatmark_2025"
+    "ssb_grids.ssb_500",
+    "samples.vaatmark_2025"
   ),
   learn_keys = T
 )
@@ -67,12 +72,12 @@ DM learns the relationships between tables by reading the constraints.
 First I can check that the amount of constraints is good.
 
 ```{r}
-#| eval: true
+#| eval: false
 dm::dm_get_all_fks(dm)
 ```
 
 ```{r}
-#| eval: true
+#| eval: false
 dm |>
   dm::dm_set_colors(
     darkgreen = vaatmark_2025, 
@@ -94,11 +99,47 @@ dm2 <- dm |>
   sf::st_as_sf(sf_column_name = "geom")
 
 ```
+ -->
+
+```{r}
+ssb500 <- dplyr::tbl(
+  con,
+  dbplyr::in_schema("ssb_grids", "ssb_500")
+) |>
+  mutate(geom_wkb = dbplyr::sql("ST_AsBinary(geom)")) |>
+  collect() |>
+  mutate(geom = sf::st_as_sfc(geom_wkb, crs = 25833)) |>
+  sf::st_as_sf(sf_column_name = "geom")
+
+wetland2026 <- dplyr::tbl(
+  con,
+  dbplyr::in_schema("samples", "vaatmark_2026")
+) |>
+  collect()
+
+# I want to get the n70 sample, with geometries
+wetland2026_70 <- wetland2026 |>
+  filter(!is.na(`70`)) |>
+  select(ano_vaatmark_2026_flateid, ssbid) |>
+  left_join(
+    ssb500 |> select(-geom_wkb),
+    by = join_by(ssbid)
+  ) |>
+    st_as_sf()
+```
+
+```{r}
+library(tmap)
+tmap_mode("view")
+
+tm_shape(wetland2026_70) +
+  tm_polygons(col = "red")
+```
 
 Then I export this as a geopackage
 ```{r}
-path <- "/data/Egenutvikling/41001581_egenutvikling_anders_kolstad/ANO"
-st_write(dm2, paste0(path, "/vaatmark_2025_1000_10.gpkg"), append = FALSE)
+path <- "R:/Kladd/ANOvaatmark"
+st_write(wetland2026_70, paste0(path, "/vaatmark_2026_n70.gpkg"), append = FALSE)
 ```
 
 ```{r}

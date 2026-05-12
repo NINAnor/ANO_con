@@ -393,7 +393,7 @@ The script for doing that is written in python ad can be found here: */data/P-Pr
 Read data into R:
 
 ```{r}
-#| eval: true
+#| eval: false
 coast_path <- "/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/CoastalSampling3.gdb"
 
 sf::st_layers(coast_path)

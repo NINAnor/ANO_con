@@ -20,6 +20,7 @@ library(dm)
 #remotes::install_github("NINAnor/spaceR", force = T)
 library(spaceR)
 #?nested_balanced
+library(logrittr)
 
 ```
 
@@ -41,6 +42,7 @@ This dataset (sampling frame) is `r nrow(pop)` long. @tbl-sf show just the first
 
 ```{r tbl-sf}
 #| include: true
+#| eval: true
 pop |>
   slice_head(n = 10) |>
   DT::datatable()
@@ -103,12 +105,14 @@ see that there are quite some cases where ABI is zero and r_bebygd_samf is not z
 Maybe this has a natural explanation, but I am not sure. 
 
 ```{r}
+#| eval: true
 plot(wet_small$r_bebygd_samf, wet_small$abi)
 ```
 
 I though that maybe this was an edge effect from water, but the plot below doesn't tell this.
 
 ```{r}
+#| eval: true
 wet_small |>
   filter(abi == 0 & r_bebygd_samf > 0) |>
   ggplot(aes(area)) +
@@ -244,7 +248,7 @@ prob_matrix |>
   knitr::kable()
 ```
 
-![](img/props.jpg)
+
 
 ## Evaluate balance
 
@@ -321,6 +325,72 @@ They are not very different. Maybe there is more of a founding bias for the SRS.
 But I dont think this test is very robust. It should be replicated/bootstrapped, and the ppm makes it more difficult as well. 
 At least the balanced samples are not very wrong. But I cant say for sure that they are more representative than SRS.
 
+I could also try and sample from a dummy dataset
+
+```{r}
+
+var <- seq(1, 1000, by=1)
+dummy <- tibble(
+  id = var,
+  bal1 = var,
+  stratum = rep(c("A", "B"), each=500),
+  Easting = var,
+  Northing = var,
+  area = 1,
+)
+
+dummy_sample <- spaceR::nested_balanced(
+  samplingFrame = dummy,
+  n_seq = seq(100, 10, -10),
+  id_col = "id",
+  stratum_col = "stratum",
+  easting_col = "Easting",
+  northing_col = "Northing",
+  area_col = "area",
+  xbal_formula = ~ bal1 -1,
+  exclude_offset = 1e+09,
+  return_dataframe = FALSE,
+  out_name = "sample"
+)
+
+
+one <- dummy |>
+  group_by(stratum) |>
+  summarise(mean_bal = mean(bal1)) |>
+  add_column(sample = "all")
+
+
+two <- dummy_sample$sample_100$ID |>
+  as_tibble() |>
+  rename(id = value) |>
+  left_join(dummy, by = join_by(id)) |>
+  group_by(stratum) |>
+  summarise(mean_bal = mean(bal1)) |>
+  add_column(sample = "100")
+
+three <- dummy_sample$sample_50$ID |>
+  as_tibble() |>
+  rename(id = value) |>
+  left_join(dummy, by = join_by(id)) |>
+  group_by(stratum) |>
+  summarise(mean_bal = mean(bal1)) |>
+  add_column(sample = "50")
+
+two <- prob_matrix |>
+  filter(area == 100 & stratum == 1) |>
+  group_by(stratum) |>
+  summarise(mean_slope = mean(mean_slope), mean_abi = mean(abi)) |>
+    add_column(sample = "1000")
+
+three <- prob_matrix |>
+  filter(area == 100 & stratum == 1 & !is.na(`500`)) |>
+  group_by(stratum) |>
+  summarise(mean_slope = mean(mean_slope), mean_abi = mean(abi)) |>
+    add_column(sample = "500")
+```
+
+The means for each strata is not perfectly similar to the population mean. They are not way off either.
+
 ## Locations per region
 
 How many sampling locations do we now get per geographic region for different total sampling sizes?
@@ -328,6 +398,13 @@ The sample size refers to the number of samples per stratum.
 So when n = 1000 we have 7000 samples nationally.
 
 ```{r}
+#| include: false
+saveRDS(prob_matrix, "data/prob_matrix.rds")
+```
+
+```{r}
+#| eval: true
+prob_matrix <- readRDS("data/prob_matrix.rds")
 prob_matrix %>=%
   filter(!is.na(`50`)) %>=%
   group_by(geographic_region) %>=%

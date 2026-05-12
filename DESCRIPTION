@@ -22,5 +22,6 @@ Imports:
   DT,
   ggpubr,
   tmap,
-  dm
+  dm,
+  logrittr
 

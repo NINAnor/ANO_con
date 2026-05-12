@@ -32,3 +32,8 @@ NINA-ebook-template.Rproj
 ANO_con.Rproj
 *.gdb
 
+R/exampleCalculation.qmd
+data/wetland_samples_1000_2026.csv
+data/prob_matrix.rds
+data/avg_values.rds
+data/ANO våtmark - utvalg.msg

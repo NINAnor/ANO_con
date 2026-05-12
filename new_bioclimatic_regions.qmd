@@ -12,6 +12,7 @@ Then we need to intersect this data with the SSB grid so that each SSB grid cell
 #| eval: true
 library(stringr)
 library(logrittr)
+library(tidyverse)
 ```
 
 ## Import
@@ -100,6 +101,9 @@ Then we can read the data back and prepare a version of the dataset that we can 
 
 ```{r readRegion}
 #| eval: true
+con <- DBI::dbConnect(drv = RPostgres::Postgres(), host = "t2lippgsql03", dbname = "ano_moduler")
+
+
 regions2 <- dplyr::tbl(
   con,
   dbplyr::in_schema("helper_variables", "new_bioclimatic_regions")
