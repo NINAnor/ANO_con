@@ -17,6 +17,7 @@ book:
     - part: "Write geographic data to the database"
       chapters: 
       - 010_SSB500.qmd
+      - new_bioclimatic_regions.qmd
       - 011_bioclimatic_regions.qmd
     - part: "Write tabular data to the database"
       chapters: 

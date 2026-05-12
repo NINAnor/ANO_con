@@ -5,7 +5,7 @@
 We will have different sampling frames, also called the _universe_, for the different ANO-modules.
 
 ## Setup schema
-This part sets up the schema, and is only done ones.
+This part sets up the schema, and is only done once.
 
 ```{r}
 schema_ur <- "CREATE SCHEMA sampling_frames"
@@ -29,8 +29,8 @@ dbSendStatement(con, priv6)
 ```
 
 
-## ANO våtmark
-Here we upload the dataframe with SSB-id's that make up the sampling frame for ANO våtmark (wetlands). The dataframe also contain auxillary variables used for balansing and stratifying the sampling. All the datasets and code (python) to create this dataframe if or will be uploaded to the database as well.
+## ANO våtmark 2025
+Here we upload the dataframe with SSB-id's that make up the sampling frame for ANO våtmark (wetlands). The dataframe also contain auxillary variables used for balancing and stratifying the sampling. All the datasets and code (python) to create this dataframe if or will be uploaded to the database as well.
 
 Read data into R:
 
@@ -73,7 +73,7 @@ There are 516201 units of marine waters and
 13263 with freshwater. 
 We could perhaps also exclude units with 100% build up area, but I'm at this moment not sure
 we can be fully sure there is no wetland in those units.
-Units with snow and ice are kept, becaus ethey can become wetalnds in a few decades.
+Units with snow and ice are kept, because they can become wetlands in a few decades.
 
 ```{r}
 
@@ -174,10 +174,213 @@ dbSendStatement(con, q3)
 
 ### Write to db
 
-Then we write data to the samplingframe_havstrand_2024 table.
+Then we write data to the samplingframe_vaatmark_2025 table.
 ```{r}
 write_sf(dat, dsn = con,
          layer = Id(schema = "sampling_frames", table = "samplingframe_vaatmark_2025"), 
+         append = T)
+```
+
+## ANO Våtmark 2026
+In 2026 we got a new map of bioclimatic sones and sections (and regions). In @sec-bcr we process this dataset and get the dominant regions for each SSB grid cell. Now we update the 2025 sampling frame with these regions, and also exclude the mid- and high alpine zones.
+
+I cant just read in the 2025 sampling frame from the db, since there are some SSB cells missing from there because there was no biocliatic data available. So I redo the steps from above (from 2025).
+
+```{r}
+library(readr)
+dat <- read_delim("P://412421_okologisk_tilstand_2024/Jan/ruter500m_Norge.csv", 
+    delim = ";", escape_double = FALSE,  trim_ws = TRUE)
+
+# removing some columns
+dat <- dat |>
+  select(-Join_Count,
+         -TARGET_FID,
+         -Shape_Leng,
+         -Shape_Length,
+         -Shape_Area)
+
+# There are some columns that should be numeric, but are read initial as characters with leading apostrophes and the wrong decimal sign.
+toConvert <- c(
+  "rFerskvann",
+  "rHav",
+  "rSnoIsbre",
+  "rBebygdSamf",
+  "minSlope",
+  "meanSlope",
+  "maxSlope"
+)
+
+dat <- dat |>
+  mutate(across(toConvert, ~ gsub("^'", "", .))) |>
+  mutate(across(toConvert, ~ gsub(",", ".", .))) |>
+  mutate(across(toConvert, as.numeric)) |>
+  mutate(across(toConvert, \(x) round(x, digits = 5))) |>
+  rename(ssbid = SSBid)
+
+dat_full <- dat
+
+nrow(dat_full[dat_full$rHav == 100,])
+nrow(dat_full[dat_full$rFerskvann == 100,])
+  
+dat <- dat |>
+  dplyr::filter(rHav < 100 & rFerskvann <100)
+
+nrow(dat_full)-nrow(dat) # 529464 Correct
+nrow(dat) #1350918
+nrow(dat)/4 # 337 729.5
+
+anyDuplicated(dat$ssbid) # no duplicates
+
+ids <- uuid::UUIDgenerate(n = nrow(dat))
+anyDuplicated(ids)
+dat <- dat |>
+  mutate(
+    vaatmark_id = ids
+  )
+
+dat <- dat |>
+  select(
+    ssbid,
+    vaatmark_id,
+    ost,
+    nord,
+    centroid_x = CENTROID_X,
+    centroid_y = CENTROID_Y,
+    komm2016 = Komm2016,
+    fylk2016 = Fylk2016,
+    r_ferskvann = rFerskvann,
+    r_hav = rHav,
+    r_sno_isbre = rSnoIsbre,
+    r_bebygd_samf = rBebygdSamf,
+    mean_slope = meanSlope,
+    ssbid_1000 = SSBid_1000,
+    abi = ABI)
+```
+
+Read the stashed data with ssbid and the new bioclimatic regions and join it with `dat`.
+
+```{r}
+regions <- readRDS(here::here("data/avg_values.rds"))
+
+regions <- regions |>
+  mutate(ssbid = as.numeric(ssbid))
+
+dat_j <- dat |>
+  left_join(regions, by = join_by(ssbid))
+
+dat_j |>
+  filter(!is.na(region_ko)) |>
+  nrow()
+
+nrow(regions)
+
+# some cells more in regions, but I also excluded water above, so that makes sense
+
+# Then I remove the mid and high alpines sones
+
+dat_j <- dat_j |>
+  filter(!is.na(region_ko)) |>
+  filter(region_number != 99)
+
+# Add fylkenavn, and geographic region
+
+dat_f <- dat_j |> 
+  mutate(fylk_navn = case_when(
+    fylk2016 == "01" ~ "Østfold",
+    fylk2016 == "02" ~ "Akershus",
+    fylk2016 == "03" ~ "Oslo",
+    fylk2016 == "04" ~ "Hedmark",
+    fylk2016 == "05" ~ "Oppland",
+    fylk2016 == "06" ~ "Buskerud",
+    fylk2016 == "07" ~ "Vestfold",
+    fylk2016 == "08" ~ "Telemark",
+    fylk2016 == "09" ~ "Aust-Agder",
+    fylk2016 == "10" ~ "Vest-Agder",
+    fylk2016 == "11" ~ "Rogaland",
+    fylk2016 == "12" ~ "Hordaland",
+    fylk2016 == "14" ~ "Sogn og Fjordane",
+    fylk2016 == "15" ~ "Møre og Romsdal",
+    fylk2016 == "16" ~ "Sør-Trøndelag",
+    fylk2016 == "17" ~ "Nord-Trøndelag",
+    fylk2016 == "18" ~ "Nordland",
+    fylk2016 == "19" ~ "Troms - Romsa",
+    fylk2016 == "20" ~ "Finnmark - Finnmárku",
+    .unmatched = "error"
+  ),
+  geographic_region = case_when(
+    fylk_navn == "Østfold" ~ "Øst",
+    fylk_navn == "Akershus" ~ "Øst",
+    fylk_navn == "Oslo" ~ "Øst",
+    fylk_navn == "Hedmark" ~ "Øst",
+    fylk_navn == "Oppland" ~ "Øst",
+    fylk_navn == "Buskerud" ~ "Øst",
+    fylk_navn == "Vestfold" ~ "Øst",
+    fylk_navn == "Telemark" ~ "Sør",
+    fylk_navn == "Aust-Agder" ~ "Sør",
+    fylk_navn == "Vest-Agder" ~ "Sør",
+    fylk_navn == "Rogaland" ~ "Vest",
+    fylk_navn == "Hordaland" ~ "Vest",
+    fylk_navn == "Sogn og Fjordane" ~ "Vest",
+    fylk_navn == "Møre og Romsdal" ~ "Midt",
+    fylk_navn == "Sør-Trøndelag" ~ "Midt",
+    fylk_navn == "Nord-Trøndelag" ~ "Midt",
+    fylk_navn == "Nordland" ~ "Nord",
+    fylk_navn == "Troms - Romsa" ~ "Nord",
+    fylk_navn == "Finnmark - Finnmárku" ~ "Nord",
+    .unmatched = "error"
+  ))
+```
+
+
+
+### Define table properties
+We will name the table *samplingframe_vaatmark_2026*.
+
+```{r}
+q1 <- "create table sampling_frames.samplingframe_vaatmark_2026 (
+vaatmark_id character varying(50) primary key,
+ssbid character varying(50),
+ost integer,
+nord integer,
+centroid_x numeric(24,0),
+centroid_y numeric(24,0),
+komm2016 character varying(5),
+fylk2016 character varying(5),
+fylk_navn character varying(50),
+geographic_region character varying(50),
+r_ferskvann numeric(10,5),
+r_hav numeric(10,5),
+r_sno_isbre numeric(10,5),
+r_bebygd_samf numeric(10,5),
+mean_slope numeric(10,5),
+ssbid_1000 numeric(15,0),
+region_ko character varying(20),
+region_number numeric(2,0),
+abi integer,
+CONSTRAINT fk_ssb_500
+      FOREIGN KEY (ssbid)
+        REFERENCES ssb_grids.ssb_500 (ssbid)
+);"
+
+# indices makes the database work faster. It should be added to all tables that are looked up frequently
+q2 <- "create index on sampling_frames.samplingframe_vaatmark_2026 using btree(ssbid);"
+q3 <- "create index on sampling_frames.samplingframe_vaatmark_2026 using btree(vaatmark_id);"
+```
+
+```{r}
+# sending the queries:
+dbSendStatement(con, q1)
+dbSendStatement(con, q2)
+dbSendStatement(con, q3)
+```
+
+
+### Write to db
+
+Then we write data to the samplingframe_vaatmark_2026 table.
+```{r}
+write_sf(dat_f, dsn = con,
+         layer = Id(schema = "sampling_frames", table = "samplingframe_vaatmark_2026"), 
          append = T)
 ```
 
@@ -190,7 +393,7 @@ The script for doing that is written in python ad can be found here: */data/P-Pr
 Read data into R:
 
 ```{r}
-#| eval: true
+#| eval: false
 coast_path <- "/data/P-Prosjekter2/412421_okologisk_tilstand_2024/Jan/CoastalSampling3.gdb"
 
 sf::st_layers(coast_path)

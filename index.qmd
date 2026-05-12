@@ -14,7 +14,8 @@ library(RPostgres)
 
 ## Introduction {.unnumbered}
 
-This web site show you how to connect to the internal NINA postgreSQL database containing the spatial data for the ANO-modules. 
+This web documents the sampling procedure for ANO modules, especially ANO wetlands (ANO våtmark). We also  show you how to connect to the internal NINA postgreSQL database containing the spatial data for the ANO-modules. 
+
 The database is found on the `t2lippgsql03` server , and is called  `ano_moduler`.
 This with admin rights are   
 
