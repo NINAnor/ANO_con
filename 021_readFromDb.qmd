@@ -111,6 +111,13 @@ ssb500 <- dplyr::tbl(
   mutate(geom = sf::st_as_sfc(geom_wkb, crs = 25833)) |>
   sf::st_as_sf(sf_column_name = "geom")
 
+wetlandFrame <- dplyr::tbl(
+  con,
+  dbplyr::in_schema("sampling_frames", "samplingframe_vaatmark_2026")
+) |>
+  collect()
+
+
 wetland2026 <- dplyr::tbl(
   con,
   dbplyr::in_schema("samples", "vaatmark_2026")
@@ -122,10 +129,14 @@ wetland2026_70 <- wetland2026 |>
   filter(!is.na(`70`)) |>
   select(ano_vaatmark_2026_flateid, ssbid) |>
   left_join(
+    wetlandFrame |> select(ssbid, komm2016, fylk2016, geographic_region),
+    by = join_by(ssbid)
+  ) |>
+  left_join(
     ssb500 |> select(-geom_wkb),
     by = join_by(ssbid)
   ) |>
-    st_as_sf()
+  st_as_sf()
 ```
 
 ```{r}
@@ -133,7 +144,7 @@ library(tmap)
 tmap_mode("view")
 
 tm_shape(wetland2026_70) +
-  tm_polygons(col = "red")
+  tm_polygons(col = "geographic_region")
 ```
 
 Then I export this as a geopackage
